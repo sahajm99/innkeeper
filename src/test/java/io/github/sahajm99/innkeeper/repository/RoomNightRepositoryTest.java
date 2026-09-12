@@ -14,6 +14,7 @@ import io.github.sahajm99.innkeeper.model.Room;
 import io.github.sahajm99.innkeeper.model.RoomNight;
 import io.github.sahajm99.innkeeper.model.RoomType;
 import io.github.sahajm99.innkeeper.support.TestData;
+import io.github.sahajm99.innkeeper.support.UnseededDatabase;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,6 +28,7 @@ import org.springframework.test.context.ActiveProfiles;
 @DataJpaTest(showSql = false)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @ActiveProfiles("test")
+@UnseededDatabase
 class RoomNightRepositoryTest {
 
     private static final LocalDate OCT_3 = LocalDate.of(2026, 10, 3);

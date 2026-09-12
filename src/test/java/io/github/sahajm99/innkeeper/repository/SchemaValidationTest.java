@@ -10,6 +10,8 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.Table;
 import jakarta.persistence.metamodel.EntityType;
 
+import io.github.sahajm99.innkeeper.support.UnseededDatabase;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -24,6 +26,7 @@ import org.springframework.test.context.ActiveProfiles;
 @DataJpaTest(showSql = false)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @ActiveProfiles("test")
+@UnseededDatabase
 class SchemaValidationTest {
 
     @Autowired JdbcTemplate jdbc;
@@ -49,10 +52,11 @@ class SchemaValidationTest {
         }
     }
 
+    /** This slice stops at V1, so the schema under validation is the migration and nothing else. */
     @Test
-    void flywayAppliedExactlyOneVersionedMigration() {
+    void flywayAppliedTheSchemaMigration() {
         Integer applied = jdbc.queryForObject(
-            "select count(*) from flyway_schema_history where success = true and version is not null",
+            "select count(*) from flyway_schema_history where success = true and version = '1'",
             Integer.class);
         assertThat(applied).isEqualTo(1);
     }
