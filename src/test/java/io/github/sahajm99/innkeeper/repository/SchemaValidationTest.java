@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Locale;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.Table;
 import jakarta.persistence.metamodel.EntityType;
 
 import org.junit.jupiter.api.Test;
@@ -29,9 +30,13 @@ class SchemaValidationTest {
     @Autowired EntityManager em;
 
     @Test
-    void everyTableInTheMigrationHasAnEntity() {
-        assertThat(schemaTables()).hasSize(19);
-        assertThat(em.getMetamodel().getEntities()).hasSize(schemaTables().size());
+    void everyTableInTheMigrationHasAnEntityAndNoEntityInventsOne() {
+        List<String> mapped = em.getMetamodel().getEntities().stream()
+            .map(entity -> entity.getJavaType().getAnnotation(Table.class).name())
+            .map(name -> name.toLowerCase(Locale.ROOT))
+            .toList();
+
+        assertThat(mapped).containsExactlyInAnyOrderElementsOf(schemaTables());
     }
 
     @Test

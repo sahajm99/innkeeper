@@ -3,7 +3,9 @@ package io.github.sahajm99.innkeeper.repository;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 import io.github.sahajm99.innkeeper.domain.BookingStatus;
 import io.github.sahajm99.innkeeper.domain.InvoiceLineKind;
@@ -12,6 +14,7 @@ import io.github.sahajm99.innkeeper.model.BookingEventType;
 import io.github.sahajm99.innkeeper.model.Branch;
 import io.github.sahajm99.innkeeper.model.Guest;
 import io.github.sahajm99.innkeeper.model.Invoice;
+import io.github.sahajm99.innkeeper.model.InvoiceLine;
 import io.github.sahajm99.innkeeper.model.Room;
 import io.github.sahajm99.innkeeper.model.RoomType;
 import io.github.sahajm99.innkeeper.support.TestData;
@@ -27,7 +30,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 
 /**
- * The ON DELETE rules of V1 are part of the contract, so they get their own tests.
+ * The ON DELETE rules of V1 and the orphan removal on Invoice.lines are part of the contract, so
+ * they get their own tests.
  *
  * <p>Each test clears the persistence context before deleting. Hibernate refuses to flush a delete
  * while other managed entities still point at the row, which would mask the database rule these
@@ -44,6 +48,7 @@ class CascadeTest {
     @Autowired BookingRepository bookings;
     @Autowired BranchRepository branches;
     @Autowired RoomTypeRepository roomTypes;
+    @Autowired InvoiceRepository invoices;
     @Autowired TestEntityManager entityManager;
     @Autowired JdbcTemplate jdbc;
 
@@ -88,6 +93,28 @@ class CascadeTest {
     }
 
     @Test
+    void replacingTheLinesOfAManagedInvoiceDeletesTheOldRows() {
+        Booking booking = data.booking(den101, guest, OCT_3, OCT_5, BookingStatus.CONFIRMED);
+        Invoice invoice = data.invoice(booking, "178.00", "14.69");
+        data.invoiceLine(invoice, 1, InvoiceLineKind.ROOM_NIGHTS, "178.00");
+        data.invoiceLine(invoice, 2, InvoiceLineKind.TAX, "14.69");
+        data.flushAndClear();
+        Long invoiceId = invoice.getId();
+        assertThat(rowsWhere("invoice_line", "invoice_id", invoiceId)).isEqualTo(2);
+
+        Invoice managed = invoices.findById(invoiceId).orElseThrow();
+        managed.replaceLines(List.of(cancellationFeeLine()));
+        invoices.flush();
+        entityManager.clear();
+
+        assertThat(rowsWhere("invoice_line", "invoice_id", invoiceId)).isEqualTo(1);
+        assertThat(invoices.findById(invoiceId).orElseThrow().getLines())
+            .singleElement()
+            .extracting(InvoiceLine::getKind, InvoiceLine::getAmount)
+            .containsExactly(InvoiceLineKind.CANCELLATION_FEE, new BigDecimal("89.00"));
+    }
+
+    @Test
     void deletingABranchRemovesItsRooms() {
         Branch spare = data.branch("SPR");
         Room spareRoom = data.room(spare, standard, "301", "79.00");
@@ -112,6 +139,17 @@ class CascadeTest {
             roomTypes.delete(roomTypes.findById(typeId).orElseThrow());
             roomTypes.flush();
         }).isInstanceOf(DataIntegrityViolationException.class);
+    }
+
+    private InvoiceLine cancellationFeeLine() {
+        InvoiceLine line = new InvoiceLine();
+        line.setLineOrder(1);
+        line.setKind(InvoiceLineKind.CANCELLATION_FEE);
+        line.setDescription("Cancellation fee");
+        line.setQuantity(1);
+        line.setUnitAmount(new BigDecimal("89.00"));
+        line.setAmount(new BigDecimal("89.00"));
+        return line;
     }
 
     private int rowsWhere(String table, String column, Long value) {

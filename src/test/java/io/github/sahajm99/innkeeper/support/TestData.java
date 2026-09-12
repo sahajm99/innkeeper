@@ -42,7 +42,8 @@ public class TestData {
     public static final Instant CREATED_AT = Instant.parse("2026-01-01T12:00:00Z");
 
     private final EntityManager em;
-    private int sequence;
+    private int roomTypeOrder;
+    private int codeSequence;
 
     public TestData(EntityManager em) {
         this.em = em;
@@ -84,7 +85,7 @@ public class TestData {
         type.setDescription("A " + code.toLowerCase(Locale.ROOT) + " room.");
         type.setMaxOccupancy(maxOccupancy);
         type.setBedSetup(maxOccupancy > 2 ? "Two queen beds" : "One king bed");
-        type.setSortOrder(++sequence);
+        type.setSortOrder(++roomTypeOrder);
         return persist(type);
     }
 
@@ -248,7 +249,7 @@ public class TestData {
 
     /** A unique code that satisfies the confirmation code pattern. */
     public String nextConfirmationCode() {
-        int value = ++sequence;
+        int value = ++codeSequence;
         StringBuilder body = new StringBuilder();
         for (int i = 0; i < 5; i++) {
             body.insert(0, ConfirmationCodes.ALPHABET.charAt(value % ConfirmationCodes.ALPHABET.length()));

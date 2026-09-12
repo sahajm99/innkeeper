@@ -47,10 +47,10 @@ public class Invoice {
     private BigDecimal tax;
 
     @Column(name = "fines", nullable = false, precision = 10, scale = 2)
-    private BigDecimal fines;
+    private BigDecimal fines = new BigDecimal("0.00");
 
     @Column(name = "cancellation_fee", nullable = false, precision = 10, scale = 2)
-    private BigDecimal cancellationFee;
+    private BigDecimal cancellationFee = new BigDecimal("0.00");
 
     @Column(name = "total", nullable = false, precision = 10, scale = 2)
     private BigDecimal total;
@@ -73,6 +73,16 @@ public class Invoice {
     public void addLine(InvoiceLine line) {
         line.setInvoice(this);
         lines.add(line);
+    }
+
+    /**
+     * Rebuilds the invoice from a new set of lines, emptying the existing collection in place so
+     * orphan removal deletes the old rows. Never replace the collection instance itself: Hibernate
+     * rejects a reassigned collection that has orphan deletion turned on.
+     */
+    public void replaceLines(List<InvoiceLine> newLines) {
+        lines.clear();
+        newLines.forEach(this::addLine);
     }
 
     public Long getId() {
@@ -165,9 +175,5 @@ public class Invoice {
 
     public List<InvoiceLine> getLines() {
         return lines;
-    }
-
-    public void setLines(List<InvoiceLine> lines) {
-        this.lines = lines;
     }
 }

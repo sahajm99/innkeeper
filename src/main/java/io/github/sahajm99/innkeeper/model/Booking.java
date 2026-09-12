@@ -66,7 +66,7 @@ public class Booking {
     private BigDecimal nightlyRate;
 
     @Column(name = "cancellation_fee", nullable = false, precision = 10, scale = 2)
-    private BigDecimal cancellationFee;
+    private BigDecimal cancellationFee = new BigDecimal("0.00");
 
     @Version
     @Column(name = "version", nullable = false)
