@@ -103,8 +103,9 @@ timezone: `LocalDate.now(clock.withZone(branch.zone()))`.
 8. Check-in: only CONFIRMED bookings, on or after the check-in date and before the check-out date
    (branch today).
 9. Check-out: only CHECKED_IN bookings. Booked dates never change. Early check-out (today before
-   the check-out date) deletes the room nights with `night_date >= today` and charges
-   `max(1, today - check_in_date)` nights. Late check-out (today after the check-out date) adds a
+   the check-out date) charges `nightsCharged = max(1, today - check_in_date)` nights and deletes
+   the room nights from `check_in_date + nightsCharged` onward (`CheckOutOutcome.releaseNightsFrom`;
+   a same-day check-out keeps and charges the first night). Late check-out (today after the check-out date) adds a
    late fine of one night's rate per extra night (date arithmetic only, no check-out time); the
    ledger is not rewritten for nights already gone and the staff page says so. Until then, a
    CHECKED_IN booking past its check-out date (an overstay) keeps the room out of availability and
