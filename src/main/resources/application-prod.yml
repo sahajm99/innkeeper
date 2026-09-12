@@ -1,0 +1,13 @@
+spring:
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+    hikari:
+      maximum-pool-size: 3
+      minimum-idle: 0
+      idle-timeout: 30000
+      max-lifetime: 240000
+      initialization-fail-timeout: 60000
+logging:
+  structured.format.console: ecs

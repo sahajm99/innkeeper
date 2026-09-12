@@ -1,0 +1,28 @@
+spring:
+  application.name: innkeeper
+  profiles.default: demo
+  jpa:
+    hibernate.ddl-auto: validate
+    open-in-view: false
+  flyway.locations: classpath:db/migration
+  threads.virtual.enabled: false
+server:
+  forward-headers-strategy: native
+  error.include-stacktrace: never
+  error.include-message: never
+  tomcat.threads.max: 20
+  servlet.session.cookie.same-site: lax
+management:
+  endpoints.web.exposure.include: health
+  endpoint.health.show-details: never
+  endpoint.health.probes.enabled: true
+springdoc:
+  api-docs.path: /api/openapi
+  swagger-ui.path: /api/docs
+  paths-to-match: /api/**
+innkeeper:
+  reset-token: ${INNKEEPER_RESET_TOKEN:}
+  rate-limit:
+    enabled: true
+    per-hour: 20
+  timezone: America/Chicago

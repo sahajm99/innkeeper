@@ -1,0 +1,11 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:innkeeper;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH;DB_CLOSE_DELAY=-1
+    username: sa
+innkeeper:
+  rate-limit:
+    enabled: false
+  reset-token: test-reset-token
+logging:
+  level:
+    org.hibernate.SQL: warn
