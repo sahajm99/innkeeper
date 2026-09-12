@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+import io.github.sahajm99.innkeeper.domain.BookingStatus;
 import io.github.sahajm99.innkeeper.model.Booking;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,6 +14,14 @@ import org.springframework.data.repository.query.Param;
 public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     Optional<Booking> findByConfirmationCode(String code);
+
+    /**
+     * Whether the room is still held by a stay that has not checked out on or after the day it
+     * agreed to leave. Such an overstay has no room nights left, so nothing but this keeps its room
+     * off the market for a stay that would start today.
+     */
+    boolean existsByRoomIdAndStatusAndCheckOutDateLessThanEqual(Long roomId, BookingStatus status,
+        LocalDate date);
 
     /** Every stay booked with this email address, newest first. Email is matched case-insensitively. */
     @Query("select b from Booking b join fetch b.room r join fetch r.branch join fetch b.guest "

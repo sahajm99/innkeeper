@@ -42,7 +42,11 @@ class AvailabilityServiceTest extends AbstractServiceTest {
     private Long standardId;
     private Long closedId;
 
-    /** Room 101 is held for 1 and 2 October and again for 4 October; every other room is free. */
+    /**
+     * Denton has a room of every type, one out of service, and room 101 held for 1 and 2 October
+     * and again for 4 October. A second branch exists so that a search of "any branch" has more
+     * than one branch to cover.
+     */
     @BeforeEach
     void createRoomsOfEveryTypeAndBookOneOfThem() {
         inTransaction(data -> {
@@ -55,6 +59,7 @@ class AvailabilityServiceTest extends AbstractServiceTest {
             data.room(denton, suite, "301", "199.00");
             data.room(denton, suite, "302", "219.00");
             Room closed = data.room(denton, standard, "199", "89.00", RoomStatus.OUT_OF_SERVICE);
+            data.room(data.branch("FTW"), standard, "401", "99.00");
             Guest ada = data.guest("ada@example.com");
             data.booking(room101, ada, OCT_1, OCT_3, BookingStatus.CONFIRMED);
             data.booking(room101, ada, OCT_4, OCT_5, BookingStatus.CONFIRMED);
@@ -142,7 +147,7 @@ class AvailabilityServiceTest extends AbstractServiceTest {
             new Query(null, null, null, 2, OCT_20, OCT_22));
 
         assertThat(found).extracting(Room::getRoomNumber)
-            .containsExactly("101", "201", "301", "302");
+            .containsExactly("101", "201", "301", "302", "401");
     }
 
     private Room room(Long id) {

@@ -7,6 +7,7 @@ import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicReference;
 
 import io.github.sahajm99.innkeeper.domain.BookingRuleException;
 import io.github.sahajm99.innkeeper.domain.BookingStatus;
@@ -30,6 +31,8 @@ import io.github.sahajm99.innkeeper.support.AbstractServiceTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * The booking lifecycle the guest pages and the API sit on: what creating a booking writes, what
@@ -43,6 +46,7 @@ class BookingServiceTest extends AbstractServiceTest {
     private static final LocalDate OCT_1 = LocalDate.of(2026, 10, 1);
     private static final LocalDate OCT_3 = LocalDate.of(2026, 10, 3);
     private static final LocalDate OCT_4 = LocalDate.of(2026, 10, 4);
+    private static final LocalDate OCT_5 = LocalDate.of(2026, 10, 5);
     private static final LocalDate OCT_6 = LocalDate.of(2026, 10, 6);
     private static final LocalDate OCT_10 = LocalDate.of(2026, 10, 10);
     private static final LocalDate OCT_12 = LocalDate.of(2026, 10, 12);
@@ -50,8 +54,12 @@ class BookingServiceTest extends AbstractServiceTest {
     /** Noon on the check-in date in Chicago, which is well past the 48 hour free window. */
     private static final Instant CHECK_IN_DAY_NOON = Instant.parse("2026-10-03T17:00:00Z");
 
+    /** Mid-morning on 3 October in Chicago, so branch today is the 3rd. */
+    private static final Instant OCT_3_MORNING = Instant.parse("2026-10-03T14:00:00Z");
+
     @Autowired BookingService bookings;
     @Autowired Random confirmationCodeRandom;
+    @Autowired PlatformTransactionManager transactionManager;
 
     private Long roomId;
     private Long spareRoomId;
@@ -118,6 +126,55 @@ class BookingServiceTest extends AbstractServiceTest {
 
         assertThat(count("guest")).isEqualTo(guests);
         assertThat(count("booking")).isEqualTo(booked);
+        assertThat(count("room_night")).isEqualTo(nights);
+    }
+
+    /**
+     * Rule 9: a guest who has not checked out keeps the room, so it cannot be sold from today even
+     * though the nights it booked have run out. Nights from after the overstay are still sellable.
+     */
+    @Test
+    void aRoomStillHeldByAnOverstayingGuestCannotBeBookedFromToday() {
+        inTransaction(data -> data.booking(entityManager.find(Room.class, roomId),
+            data.guest("overstay@example.com"), OCT_1, OCT_3, BookingStatus.CHECKED_IN));
+        clock.set(OCT_3_MORNING);
+
+        assertThatThrownBy(() -> bookings.create(command(roomId, OCT_3, OCT_4)))
+            .isInstanceOf(RoomUnavailableException.class)
+            .hasMessageContaining("101");
+        assertThat(count("booking")).isEqualTo(1);
+
+        assertThat(bookings.create(command(roomId, OCT_5, OCT_6)).getConfirmationCode())
+            .matches(ConfirmationCodes.PATTERN.pattern());
+    }
+
+    /**
+     * A refusal must not poison a transaction the caller already had open. The unit of work runs in
+     * its own transaction, so the loser's rollback is the loser's alone: with the template on plain
+     * REQUIRED propagation the caller's commit would fail with UnexpectedRollbackException instead.
+     */
+    @Test
+    void aRefusalDoesNotPoisonATransactionTheCallerAlreadyOpened() {
+        bookings.create(command(roomId, OCT_1, OCT_4));
+        int booked = count("booking");
+        int guests = count("guest");
+        int nights = count("room_night");
+        AtomicReference<RuntimeException> refusal = new AtomicReference<>();
+
+        String outcome = new TransactionTemplate(transactionManager).execute(status -> {
+            try {
+                bookings.create(command(roomId, OCT_3, OCT_6));
+                return "booked";
+            } catch (RuntimeException refused) {
+                refusal.set(refused);
+                return "refused";
+            }
+        });
+
+        assertThat(outcome).isEqualTo("refused");
+        assertThat(refusal.get()).isInstanceOf(RoomUnavailableException.class);
+        assertThat(count("booking")).isEqualTo(booked);
+        assertThat(count("guest")).isEqualTo(guests);
         assertThat(count("room_night")).isEqualTo(nights);
     }
 

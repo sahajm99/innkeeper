@@ -45,6 +45,7 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -102,9 +103,21 @@ public class BookingService {
         this.fines = fines;
         this.parkingSpaces = parkingSpaces;
         this.invoiceService = invoiceService;
-        this.transactions = new TransactionTemplate(transactionManager);
+        this.transactions = requiresNew(transactionManager);
         this.clock = clock;
         this.random = codeSource.getIfAvailable(SecureRandom::new);
+    }
+
+    /**
+     * A template that always starts a transaction of its own, suspending one the caller already
+     * has. The unit of work has to be able to roll back alone: on plain REQUIRED propagation a
+     * loser of a race would mark the caller's transaction rollback-only, and the caller would get
+     * an {@code UnexpectedRollbackException} at commit instead of the refusal it already handled.
+     */
+    private static TransactionTemplate requiresNew(PlatformTransactionManager transactionManager) {
+        TransactionTemplate template = new TransactionTemplate(transactionManager);
+        template.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+        return template;
     }
 
     // --- creating -----------------------------------------------------------------------------
@@ -147,6 +160,11 @@ public class BookingService {
      * The whole unit of work: a guest row of its own, the booking, one room night per night, the
      * opening invoice and the CREATED event, flushed so that anything the database objects to is
      * raised here rather than at an unrelated commit later.
+     *
+     * <p>Availability is three questions, not one: the room is in service, it holds none of the
+     * nights asked for, and - when the stay would start today - nobody is still in it who should
+     * already have left. The third is what {@code RoomRepository.findAvailable} also asks, because
+     * an overstay has no room nights left to collide with.</p>
      */
     private Booking insert(CreateBookingCommand command, String code) {
         Room room = rooms.findById(command.roomId())
@@ -161,6 +179,10 @@ public class BookingService {
         if (!roomNights.bookedNights(room.getId(), stay.checkIn(), stay.checkOut()).isEmpty()) {
             throw new RoomUnavailableException(
                 "Room " + room.getRoomNumber() + " is not free for those dates");
+        }
+        if (!stay.checkIn().isAfter(today) && bookings.existsByRoomIdAndStatusAndCheckOutDateLessThanEqual(
+                room.getId(), BookingStatus.CHECKED_IN, today)) {
+            throw new RoomUnavailableException("Room " + room.getRoomNumber() + " is still occupied");
         }
 
         Instant now = clock.instant();
@@ -197,6 +219,7 @@ public class BookingService {
         invoiceService.rebuild(booking, (int) stay.nights());
         events.save(event(booking, BookingEventType.CREATED, command.actor(), null));
         bookings.flush();
+        detach(booking);
         return booking;
     }
 
@@ -231,12 +254,14 @@ public class BookingService {
     }
 
     /** What cancelling would add to the invoice if the guest did it now: nothing, or one night. */
+    @Transactional(readOnly = true)
     public BigDecimal cancellationFeeNow(Booking booking) {
         return CancellationPolicy.feeAt(clock.instant(), booking.getCheckInDate(),
             zoneOf(booking), booking.getNightlyRate());
     }
 
     /** The instant the free window closes, which the booking page prints in the branch timezone. */
+    @Transactional(readOnly = true)
     public Instant cancellationDeadline(Booking booking) {
         return CancellationPolicy.deadline(booking.getCheckInDate(), zoneOf(booking));
     }
