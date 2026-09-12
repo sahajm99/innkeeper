@@ -1,0 +1,24 @@
+# Maven
+target/
+
+# Demo profile database and logs
+data/
+logs/
+*.log
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+.factorypath
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets
+.env
+*.local

@@ -1,0 +1,48 @@
+# Decisions
+
+One line of why for every taste decision. Newest at the bottom.
+
+- Repo lives at `projects/active/innkeeper` next to the other portfolio projects; its own git repo.
+- Followed the mission's process (office-hours, autoplan, writing-plans, subagent-driven development) instead of the generic brainstorming skill: the mission is the brief.
+- Java package `io.github.sahajm99.innkeeper`: the only namespace the author verifiably owns is the GitHub account.
+- Spring Boot 3.5.x (latest 3.x) on Java 21: mission requires 3.x; 3.5 is the last 3.x line.
+- Money as `NUMERIC(10,2)` + `BigDecimal` HALF_UP: boring and exact; integer cents would need the same rounding at tax time anyway.
+- `room_night` table with `UNIQUE (room_id, night_date)` instead of an overlap query alone: the database, not application code, is the last line against double booking.
+- Nightly rate snapshot copied onto the booking: a rate change after booking must not change an existing invoice.
+- Tax applies to room nights only; fines and cancellation fees are untaxed: penalties are not lodging.
+- Parking is complimentary and only tracked as an assignment: keeps invoice arithmetic to nights, tax, fines and cancellation fee, which is what the tests cover.
+- Cancellation rule: free until 48 hours before 15:00 on the check-in day in the branch timezone, then one night charged: a common hotel policy and easy to explain on the page.
+- Early check-out charges nights stayed (minimum one); late check-out adds one night's rate per extra night as a fine: replaces the course's flat $30 late fine with something proportional.
+- Seed data through a Java Flyway migration (`V2__seed_data`) rather than SQL: seed bookings must be relative to "today" so the staff dashboard is never empty, and one Java file beats two vendor-specific SQL files.
+- Nightly reset = Flyway clean + migrate behind `POST /internal/reset` with a token, triggered by a GitHub Actions cron and by an in-app schedule: a free-tier instance that is asleep at 03:00 cannot run its own cron, and the HTTP call wakes it.
+- CSRF disabled only for `/api/**`: the JSON API is stateless and must be usable from the OpenAPI UI; page forms keep tokens.
+- Booking pages unlocked per HTTP session by code + email (or by staff role): no guest sign-up, but a confirmation code alone should not expose someone's stay.
+- In-memory per-IP rate limit on booking and complaint POSTs: a public demo with open forms needs a floor; no library, forty lines.
+- H2 in PostgreSQL mode for tests and demo, `ddl-auto=validate` everywhere: the entity mapping is checked against the migrated schema on every start.
+- Fraunces + Source Sans 3, self-hosted: a warm serif with real optical sizes for headings, a quiet sans for forms and tables; no CDN.
+- Palette from walnut, brass, pine and paper rather than cream + terracotta: the brief says warm and precise, and the default AI palette is a tell.
+- Theme toggle stored in localStorage on top of `prefers-color-scheme`: needed for dark-mode screenshots and for people whose OS setting is not what they want on this site.
+- Guests are identified by email only, no accounts: the mission says no sign-up; a GUEST role still exists for the demo login and the role model.
+- Render builds the Docker image from the repo and GitHub Actions triggers the deploy through the Render API after tests pass: no registry credentials to manage and "deploy on push to main" stays in CI.
+- CI also builds the image and pushes it to GHCR on main: the image that passed tests is published, even though Render builds its own.
+- Autoplan premise gate auto-confirmed: the mission delegated routine decisions and its premises are the mission's own.
+- Reviewers' proposals to cut staff pages to a later phase rejected: the definition of done lists them.
+- Guest rows per booking, email lower-cased and indexed but not unique: an unverified email is contact data, not identity.
+- Booking creation runs inside a `TransactionTemplate` in a non-transactional facade so the `uq_room_night` violation is caught after the commit attempt and translated by constraint name; entities use `GenerationType.IDENTITY`.
+- `@Version` on booking and a conditional update for parking assignment: two staff on one booking or one space must not overwrite each other.
+- Late check-out only fines; the ledger is not rewritten for nights already gone, but an overstaying CHECKED_IN booking keeps its room out of availability until check-out.
+- Nightly reset is a transactional delete-and-reseed guarded by a JVM lock, not Flyway clean: no DDL under live connections, and the same `SeedData` class serves the V2 migration and the reset.
+- In-app reset schedule at 03:00 America/Chicago plus a GitHub Actions cron at 09:30 UTC, both through `resetIfStale`, so a double fire within 30 minutes is a no-op.
+- API lookup and cancel take code and email in a POST body: no PII in query strings or logs.
+- Race demo endpoint and button: the double-booking guard is the interesting part, so a visitor can watch it hold.
+- Keep-warm ping every 10 minutes during US daytime: a cold start on Render's 0.1 CPU is the first impression; the README says what happens outside those hours.
+- Dependabot monthly for Maven and Actions: scheduled workflows are paused after 60 idle days; the README explains how to re-enable them if that happens anyway.
+- `prod` profile fails fast without `DATABASE_URL`: a hosted instance must never silently run on H2 while claiming PostgreSQL.
+- Invoice snapshots the tax rate and is immutable once the booking is final: history must not move when a rate changes.
+- Spring Boot structured logging (`ecs`) in `prod` and `demo` with request fields in the MDC instead of a hand-rolled JSON line: less code, same result.
+- CSP `default-src 'self'` with every script and style in a file: no inline JavaScript anywhere, including the theme boot script.
+- AppCDS archive and small-heap JVM flags in the image, no lazy initialisation: faster startup on 0.1 CPU without hiding wiring errors until the first request.
+- Render builds the Dockerfile itself and CI triggers the deploy through the API; GHCR gets the tested image as an artifact. Fallback if Render builds fail on the free tier: a registry credential and an image-backed service.
+- `docs/adr/` records the four contested choices (room_night versus an exclusion constraint, H2 versus Testcontainers, reset strategy, session versus token) so reviewers see the reasoning, not only the tables.
+- Guest emails and phones masked on staff pages and a "do not enter real personal data" line on public forms: every visitor can log in as staff.
+- Maintenance requests can take a room out of service (refused while future nights exist) and marking them done returns it: the only way the room status changes, so it is visible and tested.
