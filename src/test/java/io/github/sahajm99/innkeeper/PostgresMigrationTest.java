@@ -52,7 +52,7 @@ class PostgresMigrationTest extends AbstractPostgresTest {
         assertThat(count("room")).isEqualTo(32);
         assertThat(count("booking")).isEqualTo(24);
         assertThat(count("room_night")).isEqualTo(51);
-        assertThat(count("invoice")).isEqualTo(7);
+        assertThat(count("invoice")).isEqualTo(24);
         assertThat(count("user_account")).isEqualTo(3);
     }
 

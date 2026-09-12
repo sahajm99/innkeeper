@@ -52,7 +52,7 @@ class SeedDataTest {
     void theChildTablesAreSeededWithTheirParents() {
         assertThat(count("fine")).isEqualTo(2);
         assertThat(count("payment")).isEqualTo(5);
-        assertThat(count("invoice_line")).isEqualTo(12);
+        assertThat(count("invoice_line")).isEqualTo(47);
         assertThat(count("booking_event")).isEqualTo(51);
         assertThat(count("app_metadata")).isEqualTo(2);
     }
@@ -122,15 +122,29 @@ class SeedDataTest {
     }
 
     @Test
-    void checkedOutStaysArePaidInFullAndCancelledOnesAreVoidOrOpen() {
-        assertThat(invoicesWithStatus("PAID")).isEqualTo(5);
-        assertThat(invoicesWithStatus("VOID")).isEqualTo(1);
-        assertThat(invoicesWithStatus("OPEN")).isEqualTo(1);
+    void everyBookingCarriesAnInvoiceFromTheMomentItIsCreated() {
+        assertThat(jdbc.queryForObject("select count(*) from booking b where not exists "
+            + "(select 1 from invoice i where i.booking_id = b.id)", Integer.class))
+            .as("bookings with no invoice")
+            .isZero();
+    }
+
+    @Test
+    void invoiceStatusFollowsTheBookingItBelongsTo() {
+        assertThat(invoicesWithStatus("PAID")).as("the five checked-out stays").isEqualTo(5);
+        assertThat(invoicesWithStatus("VOID")).as("the free cancellation").isEqualTo(1);
+        assertThat(invoicesWithStatus("OPEN"))
+            .as("the cancellation with a fee and the seventeen open stays")
+            .isEqualTo(18);
 
         assertThat(jdbc.queryForObject("select count(*) from invoice i where i.status = 'PAID' "
             + "and i.total <> (select coalesce(sum(p.amount), 0) from payment p "
             + "where p.invoice_id = i.id)", Integer.class))
             .as("PAID invoices whose payments do not add up to the total")
+            .isZero();
+        assertThat(jdbc.queryForObject("select count(*) from payment p join invoice i "
+            + "on i.id = p.invoice_id where i.status <> 'PAID'", Integer.class))
+            .as("payments against an invoice that is not settled")
             .isZero();
     }
 

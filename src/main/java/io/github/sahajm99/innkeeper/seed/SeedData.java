@@ -375,7 +375,7 @@ public class SeedData {
 
     /** The counts {@link #seed()} inserts. Literal on purpose: a drift should fail a test. */
     public static Counts expectedCounts() {
-        return new Counts(3, 3, 32, 24, 24, 51, 7, 6, 3, 9, 5, 18, 20, 3);
+        return new Counts(3, 3, 32, 24, 24, 51, 24, 6, 3, 9, 5, 18, 20, 3);
     }
 
     /** Inserts the whole demo data set, with every date relative to today in Central time. */
@@ -609,18 +609,18 @@ public class SeedData {
     }
 
     /**
-     * Only a finished stay has an invoice: a checked-out one that was paid in full, and a
-     * cancelled one that is VOID when the cancellation was free and OPEN when it carries a fee.
-     * Open and in-house bookings get theirs when they check out.
+     * Every booking has exactly one invoice, opened with the booking and rebuilt on each
+     * transition, which is what {@code InvoiceService} does at runtime. A checked-out stay is PAID
+     * in full; a cancelled one is VOID when the cancellation was free and OPEN when it carries a
+     * fee; a confirmed or in-house stay is OPEN for the whole stay it booked, plus any fine already
+     * issued against it.
      */
     private void seedInvoice(Stay stay, long bookingId, LocalDate checkIn, LocalDate checkOut,
             BigDecimal rate, BigDecimal cancellationFee, List<FineLine> fines, Instant checkedOutAt,
             Instant cancelledAt, List<Moment> events) {
 
         boolean cancelled = stay.status() == BookingStatus.CANCELLED;
-        if (stay.status() != BookingStatus.CHECKED_OUT && !cancelled) {
-            return;
-        }
+        boolean settled = stay.status() == BookingStatus.CHECKED_OUT;
         int nights = cancelled ? 0 : (int) ChronoUnit.DAYS.between(checkIn, checkOut);
         List<FineLine> billed = cancelled ? List.of() : fines;
         BigDecimal taxRate = branchTaxRates.get(stay.branch());
@@ -628,18 +628,24 @@ public class SeedData {
             InvoiceCalculator.calculate(nights, rate, taxRate, billed, cancellationFee);
 
         InvoiceStatus status;
-        if (!cancelled) {
+        if (settled) {
             status = InvoiceStatus.PAID;
+        } else if (cancelled && invoice.total().signum() == 0) {
+            status = InvoiceStatus.VOID;
         } else {
-            status = invoice.total().signum() > 0 ? InvoiceStatus.OPEN : InvoiceStatus.VOID;
+            status = InvoiceStatus.OPEN;
         }
-        Instant issuedAt = cancelled ? cancelledAt : checkedOutAt;
+
+        // A finished invoice is stamped by the transition that closed it; an open one was raised
+        // with the booking and last touched by the newest thing that happened to it.
+        Instant issuedAt = settled ? checkedOutAt : cancelled ? cancelledAt : earliestOf(events);
+        Instant updatedAt = settled || cancelled ? issuedAt : latestOf(events);
 
         long invoiceId = insert("insert into invoice (booking_id, tax_rate, room_subtotal, tax, "
             + "fines, cancellation_fee, total, status, issued_at, updated_at) "
             + "values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             bookingId, taxRate, invoice.roomSubtotal(), invoice.tax(), invoice.fines(),
-            invoice.cancellationFee(), invoice.total(), status.name(), issuedAt, issuedAt);
+            invoice.cancellationFee(), invoice.total(), status.name(), issuedAt, updatedAt);
 
         int lineOrder = 0;
         for (Line line : invoice.lines()) {
@@ -711,6 +717,15 @@ public class SeedData {
     /** Nothing the seed writes may be dated after the moment the seed ran. */
     private static Instant notAfter(Instant instant, Instant now) {
         return instant == null || instant.isBefore(now) ? instant : now;
+    }
+
+    /** The booking's CREATED event, which is the first one collected for it. */
+    private static Instant earliestOf(List<Moment> events) {
+        return events.stream().map(Moment::occurredAt).min(Comparator.naturalOrder()).orElseThrow();
+    }
+
+    private static Instant latestOf(List<Moment> events) {
+        return events.stream().map(Moment::occurredAt).max(Comparator.naturalOrder()).orElseThrow();
     }
 
     private Long frontDeskOf(String branch) {
