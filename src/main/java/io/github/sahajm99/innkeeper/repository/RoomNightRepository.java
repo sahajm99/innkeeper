@@ -18,6 +18,9 @@ public interface RoomNightRepository extends JpaRepository<RoomNight, Long> {
                                  @Param("from") LocalDate from,
                                  @Param("to") LocalDate to);
 
+    /** Whether anybody still holds this room from a date onwards; a room in use cannot be closed. */
+    boolean existsByRoomIdAndNightDateGreaterThanEqual(Long roomId, LocalDate from);
+
     /** Releases the nights from a date onwards, which is what an early check-out does. */
     long deleteByBookingIdAndNightDateGreaterThanEqual(Long bookingId, LocalDate from);
 

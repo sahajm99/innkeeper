@@ -15,9 +15,16 @@ import io.github.sahajm99.innkeeper.model.Branch;
 import io.github.sahajm99.innkeeper.model.Employee;
 import io.github.sahajm99.innkeeper.model.Fine;
 import io.github.sahajm99.innkeeper.model.Guest;
+import io.github.sahajm99.innkeeper.model.InventoryItem;
 import io.github.sahajm99.innkeeper.model.Invoice;
 import io.github.sahajm99.innkeeper.model.InvoiceLine;
 import io.github.sahajm99.innkeeper.model.InvoiceStatus;
+import io.github.sahajm99.innkeeper.model.MaintenanceRequest;
+import io.github.sahajm99.innkeeper.model.MaintenanceStatus;
+import io.github.sahajm99.innkeeper.model.MaintenanceTeam;
+import io.github.sahajm99.innkeeper.model.ParkingKind;
+import io.github.sahajm99.innkeeper.model.ParkingSpace;
+import io.github.sahajm99.innkeeper.model.Priority;
 import io.github.sahajm99.innkeeper.model.Room;
 import io.github.sahajm99.innkeeper.model.RoomNight;
 import io.github.sahajm99.innkeeper.model.RoomStatus;
@@ -189,6 +196,59 @@ public class TestData {
         fine.setAmount(new BigDecimal(amount));
         fine.setIssuedAt(CREATED_AT);
         return persist(fine);
+    }
+
+    // --- the house: parking, stock and repairs ------------------------------------------------
+
+    /** A free parking space; {@code ParkingSpaceRepository.assign} is what fills one. */
+    public ParkingSpace parkingSpace(Branch branch, String spaceNumber, ParkingKind kind) {
+        ParkingSpace space = new ParkingSpace();
+        space.setBranch(branch);
+        space.setSpaceNumber(spaceNumber);
+        space.setKind(kind);
+        return persist(space);
+    }
+
+    public InventoryItem inventoryItem(Branch branch, String name, int quantity, int reorderLevel) {
+        InventoryItem item = new InventoryItem();
+        item.setBranch(branch);
+        item.setName(name);
+        item.setCategory("Guest supplies");
+        item.setQuantity(quantity);
+        item.setReorderLevel(reorderLevel);
+        item.setUnit("each");
+        item.setUpdatedAt(CREATED_AT);
+        return persist(item);
+    }
+
+    public MaintenanceTeam maintenanceTeam(Branch branch, String name) {
+        MaintenanceTeam team = new MaintenanceTeam();
+        team.setBranch(branch);
+        team.setName(name);
+        team.setSpecialty("Everything that breaks");
+        team.setContactEmail(name.toLowerCase(Locale.ROOT).replace(" ", ".") + "@example.com");
+        return persist(team);
+    }
+
+    /** A repair job. {@code completedAt} is only read for a DONE one, which is what dates the board. */
+    public MaintenanceRequest maintenanceRequest(Branch branch, Room room, String title,
+            Priority priority, MaintenanceStatus status, Instant completedAt) {
+        MaintenanceRequest request = new MaintenanceRequest();
+        request.setBranch(branch);
+        request.setRoom(room);
+        request.setTitle(title);
+        request.setDescription(title + ", reported by the front desk.");
+        request.setPriority(priority);
+        request.setStatus(status);
+        request.setReportedBy("Ben Sample");
+        request.setCreatedAt(CREATED_AT);
+        if (status != MaintenanceStatus.OPEN) {
+            request.setStartedAt(CREATED_AT);
+        }
+        if (status == MaintenanceStatus.DONE) {
+            request.setCompletedAt(completedAt);
+        }
+        return persist(request);
     }
 
     // --- invoices ----------------------------------------------------------------------------

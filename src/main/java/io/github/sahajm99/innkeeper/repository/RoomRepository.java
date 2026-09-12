@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 
 import io.github.sahajm99.innkeeper.model.Room;
+import io.github.sahajm99.innkeeper.model.RoomStatus;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -38,6 +39,17 @@ public interface RoomRepository extends JpaRepository<Room, Long> {
                              @Param("today") LocalDate today);
 
     List<Room> findByBranchIdOrderByRoomNumber(Long branchId);
+
+    /**
+     * The rooms in one status with their branch loaded, which is how the maintenance board lists
+     * what is out of service. Pass a null branch for every branch.
+     */
+    @Query("select r from Room r join fetch r.branch b where r.status = :status "
+        + "and (:branchId is null or b.id = :branchId) order by b.name, r.roomNumber")
+    List<Room> findByStatus(@Param("status") RoomStatus status, @Param("branchId") Long branchId);
+
+    /** How many rooms a branch can actually sell, which is the denominator of occupancy. */
+    long countByBranchIdAndStatus(Long branchId, RoomStatus status);
 
     Optional<Room> findByBranchCodeAndRoomNumber(String branchCode, String roomNumber);
 }

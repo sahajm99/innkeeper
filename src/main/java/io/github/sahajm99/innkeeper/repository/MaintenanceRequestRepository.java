@@ -1,6 +1,7 @@
 package io.github.sahajm99.innkeeper.repository;
 
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 
 import io.github.sahajm99.innkeeper.model.MaintenanceRequest;
@@ -31,4 +32,11 @@ public interface MaintenanceRequestRepository extends JpaRepository<MaintenanceR
     List<MaintenanceRequest> board(@Param("branchId") Long branchId, @Param("doneSince") Instant doneSince);
 
     long countByStatusAndBranchId(MaintenanceStatus status, Long branchId);
+
+    /**
+     * Whether some other job is still holding this room, which is what decides if finishing one
+     * puts the room back in service.
+     */
+    boolean existsByRoomIdAndIdNotAndStatusIn(Long roomId, Long id,
+        Collection<MaintenanceStatus> statuses);
 }
