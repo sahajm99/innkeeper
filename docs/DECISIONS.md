@@ -46,3 +46,4 @@ One line of why for every taste decision. Newest at the bottom.
 - `docs/adr/` records the four contested choices (room_night versus an exclusion constraint, H2 versus Testcontainers, reset strategy, session versus token) so reviewers see the reasoning, not only the tables.
 - Guest emails and phones masked on staff pages and a "do not enter real personal data" line on public forms: every visitor can log in as staff.
 - Maintenance requests can take a room out of service (refused while future nights exist) and marking them done returns it: the only way the room status changes, so it is visible and tested.
+- Process accelerated at the author's request after Task 5: per-task reviews and fix rounds dropped, remaining tasks batched; the test suite and the final live QA are the gates.
