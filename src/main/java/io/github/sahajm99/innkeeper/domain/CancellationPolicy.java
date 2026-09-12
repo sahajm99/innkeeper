@@ -24,7 +24,7 @@ public final class CancellationPolicy {
     public static BigDecimal feeAt(Instant now, LocalDate checkIn, ZoneId zone, BigDecimal nightlyRate) {
         return now.isAfter(deadline(checkIn, zone))
             ? nightlyRate.setScale(2, RoundingMode.HALF_UP)
-            : BigDecimal.ZERO;
+            : BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
     }
 
     public static void assertCancellable(BookingStatus status) {

@@ -11,7 +11,9 @@ public final class OccupancyRule {
             throw new BookingRuleException("adults", "At least one adult is required");
         }
         if (adults + children > maxOccupancy) {
-            throw new BookingRuleException("children", "This room sleeps up to " + maxOccupancy + " guests");
+            String limit = maxOccupancy == 1 ? "1 guest" : maxOccupancy + " guests";
+            throw new BookingRuleException(children == 0 ? "adults" : "children",
+                "This room sleeps up to " + limit);
         }
     }
 }

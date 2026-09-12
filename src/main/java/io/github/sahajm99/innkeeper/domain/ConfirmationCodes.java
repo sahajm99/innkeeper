@@ -24,6 +24,6 @@ public final class ConfirmationCodes {
     }
 
     public static boolean isValid(String code) {
-        return PATTERN.matcher(code).matches();
+        return code != null && PATTERN.matcher(code).matches();
     }
 }

@@ -30,14 +30,14 @@ class CancellationPolicyTest {
     void cancellingOneSecondBeforeTheDeadlineIsFree() {
         Instant now = CancellationPolicy.deadline(CHECK_IN, CHICAGO).minusSeconds(1);
 
-        assertThat(CancellationPolicy.feeAt(now, CHECK_IN, CHICAGO, RATE)).isEqualByComparingTo(BigDecimal.ZERO);
+        assertThat(CancellationPolicy.feeAt(now, CHECK_IN, CHICAGO, RATE)).isEqualTo(new BigDecimal("0.00"));
     }
 
     @Test
     void cancellingExactlyAtTheDeadlineIsFree() {
         Instant now = CancellationPolicy.deadline(CHECK_IN, CHICAGO);
 
-        assertThat(CancellationPolicy.feeAt(now, CHECK_IN, CHICAGO, RATE)).isEqualByComparingTo(BigDecimal.ZERO);
+        assertThat(CancellationPolicy.feeAt(now, CHECK_IN, CHICAGO, RATE)).isEqualTo(new BigDecimal("0.00"));
     }
 
     @Test

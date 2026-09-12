@@ -29,6 +29,14 @@ class ConfirmationCodesTest {
     }
 
     @Test
+    void aGeneratedCodeIsThePrefixPlusSixCharacters() {
+        String code = ConfirmationCodes.generate(new Random(7L));
+
+        assertThat(code).hasSize(10).startsWith("INN-");
+        assertThat(code.substring("INN-".length())).hasSize(6);
+    }
+
+    @Test
     void differentSeedsProduceDifferentCodes() {
         String first = ConfirmationCodes.generate(new Random(1L));
         String second = ConfirmationCodes.generate(new Random(2L));
@@ -44,5 +52,11 @@ class ConfirmationCodesTest {
     @Test
     void aWellFormedCodeIsValid() {
         assertThat(ConfirmationCodes.isValid("INN-ABC234")).isTrue();
+    }
+
+    @Test
+    void aMissingCodeIsNotValid() {
+        assertThat(ConfirmationCodes.isValid(null)).isFalse();
+        assertThat(ConfirmationCodes.isValid("")).isFalse();
     }
 }

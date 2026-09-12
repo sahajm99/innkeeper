@@ -26,6 +26,21 @@ class OccupancyRuleTest {
     }
 
     @Test
+    void tooManyAdultsAndNoChildrenBlamesTheAdultsField() {
+        BookingRuleException thrown = rejected(() -> OccupancyRule.check(3, 0, 2));
+
+        assertThat(thrown.field()).isEqualTo("adults");
+        assertThat(thrown.getMessage()).isEqualTo("This room sleeps up to 2 guests");
+    }
+
+    @Test
+    void aRoomThatSleepsOneIsDescribedInTheSingular() {
+        BookingRuleException thrown = rejected(() -> OccupancyRule.check(2, 0, 1));
+
+        assertThat(thrown.getMessage()).isEqualTo("This room sleeps up to 1 guest");
+    }
+
+    @Test
     void guestsWithinTheMaximumOccupancyAreAccepted() {
         assertThatCode(() -> OccupancyRule.check(2, 0, 2)).doesNotThrowAnyException();
     }

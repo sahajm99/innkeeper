@@ -99,6 +99,13 @@ class StayPeriodTest {
     }
 
     @Test
+    void nightDatesOfAOneNightStayIsTheCheckInDateAlone() {
+        StayPeriod stay = new StayPeriod(LocalDate.of(2026, 10, 1), LocalDate.of(2026, 10, 2));
+
+        assertThat(stay.nightDates()).containsExactly(LocalDate.of(2026, 10, 1));
+    }
+
+    @Test
     void coversEveryNightOfTheStayButNotTheCheckOutDate() {
         StayPeriod stay = new StayPeriod(LocalDate.of(2026, 10, 1), LocalDate.of(2026, 10, 4));
 
