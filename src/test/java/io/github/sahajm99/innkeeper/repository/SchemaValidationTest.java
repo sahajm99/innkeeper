@@ -59,6 +59,10 @@ class SchemaValidationTest {
             "select count(*) from flyway_schema_history where success = true and version = '1'",
             Integer.class);
         assertThat(applied).isEqualTo(1);
+        assertThat(jdbc.queryForObject(
+            "select count(*) from flyway_schema_history where version = '2'", Integer.class))
+            .as("the seed must not run on the slice database")
+            .isZero();
     }
 
     private List<String> schemaTables() {

@@ -11,6 +11,8 @@ import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -102,9 +104,11 @@ public class SeedData {
     /** The Denton room held out of service, which is also the one with an urgent repair open. */
     private static final String OUT_OF_SERVICE = "DEN-106";
 
-    /** Who records payments and issues fines at each branch. */
-    private static final Map<String, String> FRONT_DESK =
-        Map.of("DEN", "Ben Sample", "FTW", "Cleo Placeholder", "AUS", "Finn Mockup");
+    /** Who records payments and issues fines at each branch, by the email employees are keyed on. */
+    private static final Map<String, String> FRONT_DESK = Map.of(
+        "DEN", "ben.sample" + EXAMPLE_COM,
+        "FTW", "cleo.placeholder" + EXAMPLE_COM,
+        "AUS", "finn.mockup" + EXAMPLE_COM);
 
     // --- the data itself ---------------------------------------------------------------------
 
@@ -128,10 +132,6 @@ public class SeedData {
     private record EmployeeSpec(String branch, String firstName, String lastName, String position,
         String hiredOn) {
 
-        String fullName() {
-            return firstName + " " + lastName;
-        }
-
         String email() {
             return emailFor(firstName, lastName);
         }
@@ -154,6 +154,10 @@ public class SeedData {
     private record Repair(String branch, String room, String title, String description,
         Priority priority, MaintenanceStatus status, String team, String reportedBy, int reportedOn,
         Integer startedOn, Integer completedOn) {
+    }
+
+    /** One entry of a booking's audit trail, collected first so the rows can be written in order. */
+    private record Moment(BookingEventType type, Instant occurredAt, String note) {
     }
 
     private record Grievance(String branch, String stayKey, ComplaintCategory category,
@@ -386,10 +390,10 @@ public class SeedData {
         seedEmployees();
         seedAccounts();
         seedTeams();
-        seedRepairs(today);
+        seedRepairs(today, now);
         seedInventory(now);
         seedParking();
-        seedStays(today);
+        seedStays(today, now);
         seedComplaints(today);
         seedMetadata(now);
     }
@@ -453,14 +457,14 @@ public class SeedData {
                 + "position, hired_on, active) values (?, ?, ?, ?, ?, ?, ?)",
                 branchIds.get(employee.branch()), employee.firstName(), employee.lastName(),
                 employee.email(), employee.position(), LocalDate.parse(employee.hiredOn()), true);
-            employeeIds.put(employee.fullName(), id);
+            employeeIds.put(employee.email(), id);
         }
     }
 
     private void seedAccounts() {
         for (DemoAccounts.Account account : DemoAccounts.ALL) {
             Long employeeId = account.employeeEmail() == null ? null
-                : employeeIds.get(account.displayName());
+                : employeeIds.get(account.employeeEmail());
             insert("insert into user_account (username, password_hash, role, display_name, "
                 + "employee_id, enabled) values (?, ?, ?, ?, ?, ?)",
                 account.username(), DemoAccounts.hashFor(account), account.role(),
@@ -481,7 +485,7 @@ public class SeedData {
         }
     }
 
-    private void seedRepairs(LocalDate today) {
+    private void seedRepairs(LocalDate today, Instant now) {
         for (Repair repair : REPAIRS) {
             Long roomId = repair.room() == null ? null
                 : roomIds.get(repair.branch() + "-" + repair.room());
@@ -493,7 +497,7 @@ public class SeedData {
                 branchIds.get(repair.branch()), roomId, repair.title(), repair.description(),
                 repair.priority().name(), repair.status().name(), teamId, repair.reportedBy(),
                 at(today, repair.reportedOn(), REPORTED_AT),
-                at(today, repair.startedOn(), STARTED_AT),
+                notAfter(at(today, repair.startedOn(), STARTED_AT), now),
                 at(today, repair.completedOn(), COMPLETED_AT));
         }
     }
@@ -527,13 +531,13 @@ public class SeedData {
 
     // --- guests, bookings and money ------------------------------------------------------------
 
-    private void seedStays(LocalDate today) {
+    private void seedStays(LocalDate today, Instant now) {
         for (Stay stay : STAYS) {
-            seedStay(stay, today);
+            seedStay(stay, today, now);
         }
     }
 
-    private void seedStay(Stay stay, LocalDate today) {
+    private void seedStay(Stay stay, LocalDate today, Instant now) {
         LocalDate checkIn = today.plusDays(stay.checkIn());
         LocalDate checkOut = today.plusDays(stay.checkOut());
         LocalDate bookedOn = earlier(checkIn.minusDays(5), today.minusDays(2));
@@ -548,7 +552,7 @@ public class SeedData {
         Instant checkedInAt = stayed ? at(checkIn, CHECK_IN_AT) : null;
         Instant checkedOutAt = stay.status() == BookingStatus.CHECKED_OUT
             ? at(checkOut, CHECK_OUT_AT) : null;
-        Instant cancelledAt = at(today, stay.cancelledOn(), CANCELLED_AT);
+        Instant cancelledAt = notAfter(at(today, stay.cancelledOn(), CANCELLED_AT), now);
         BigDecimal rate = roomRates.get(stay.room());
         BigDecimal cancellationFee = new BigDecimal(
             stay.cancellationFee() == null ? "0.00" : stay.cancellationFee());
@@ -562,23 +566,25 @@ public class SeedData {
             cancellationFee, createdAt, checkedInAt, checkedOutAt, cancelledAt);
         stayIds.put(stay.key(), bookingId);
 
-        event(bookingId, BookingEventType.CREATED, createdAt, null);
+        List<Moment> events = new ArrayList<>();
+        events.add(new Moment(BookingEventType.CREATED, createdAt, null));
         if (stay.status() != BookingStatus.CANCELLED) {
             seedRoomNights(bookingId, roomIds.get(stay.room()), checkIn, checkOut);
         }
         if (checkedInAt != null) {
-            event(bookingId, BookingEventType.CHECKED_IN, checkedInAt, null);
+            events.add(new Moment(BookingEventType.CHECKED_IN, checkedInAt, null));
         }
         if (checkedOutAt != null) {
-            event(bookingId, BookingEventType.CHECKED_OUT, checkedOutAt, null);
+            events.add(new Moment(BookingEventType.CHECKED_OUT, checkedOutAt, null));
         }
         if (cancelledAt != null) {
-            event(bookingId, BookingEventType.CANCELLED, cancelledAt, null);
+            events.add(new Moment(BookingEventType.CANCELLED, cancelledAt, null));
         }
 
-        List<FineLine> fines = seedFines(stay, bookingId, checkIn);
+        List<FineLine> fines = seedFines(stay, bookingId, checkIn, events);
         seedInvoice(stay, bookingId, checkIn, checkOut, rate, cancellationFee, fines,
-            checkedOutAt, cancelledAt);
+            checkedOutAt, cancelledAt, events);
+        seedEvents(bookingId, events);
     }
 
     private void seedRoomNights(long bookingId, long roomId, LocalDate checkIn, LocalDate checkOut) {
@@ -588,7 +594,8 @@ public class SeedData {
         }
     }
 
-    private List<FineLine> seedFines(Stay stay, long bookingId, LocalDate checkIn) {
+    private List<FineLine> seedFines(Stay stay, long bookingId, LocalDate checkIn,
+            List<Moment> events) {
         if (stay.fineReason() == null) {
             return List.of();
         }
@@ -597,7 +604,7 @@ public class SeedData {
         insert("insert into fine (booking_id, reason, amount, issued_at, issued_by_employee_id) "
             + "values (?, ?, ?, ?, ?)",
             bookingId, stay.fineReason(), amount, issuedAt, frontDeskOf(stay.branch()));
-        event(bookingId, BookingEventType.FINE_ADDED, issuedAt, stay.fineReason());
+        events.add(new Moment(BookingEventType.FINE_ADDED, issuedAt, stay.fineReason()));
         return List.of(new FineLine(stay.fineReason(), amount));
     }
 
@@ -608,7 +615,7 @@ public class SeedData {
      */
     private void seedInvoice(Stay stay, long bookingId, LocalDate checkIn, LocalDate checkOut,
             BigDecimal rate, BigDecimal cancellationFee, List<FineLine> fines, Instant checkedOutAt,
-            Instant cancelledAt) {
+            Instant cancelledAt, List<Moment> events) {
 
         boolean cancelled = stay.status() == BookingStatus.CANCELLED;
         if (stay.status() != BookingStatus.CHECKED_OUT && !cancelled) {
@@ -648,8 +655,8 @@ public class SeedData {
                 + "recorded_by_employee_id) values (?, ?, ?, ?, ?, ?)",
                 invoiceId, invoice.total(), stay.paymentMethod().name(),
                 "DEMO-" + stay.paymentMethod().name(), paidAt, frontDeskOf(stay.branch()));
-            event(bookingId, BookingEventType.PAYMENT_RECORDED, paidAt,
-                stay.paymentMethod().name());
+            events.add(new Moment(BookingEventType.PAYMENT_RECORDED, paidAt,
+                stay.paymentMethod().name()));
         }
     }
 
@@ -691,9 +698,19 @@ public class SeedData {
         codeSource = new Random(CODE_SEED);
     }
 
-    private void event(long bookingId, BookingEventType type, Instant occurredAt, String note) {
-        insert("insert into booking_event (booking_id, event_type, occurred_at, actor, note) "
-            + "values (?, ?, ?, ?, ?)", bookingId, type.name(), occurredAt, ACTOR, note);
+    /** The audit trail is append-only, so the rows have to go in oldest first. */
+    private void seedEvents(long bookingId, List<Moment> events) {
+        events.sort(Comparator.comparing(Moment::occurredAt));
+        for (Moment moment : events) {
+            insert("insert into booking_event (booking_id, event_type, occurred_at, actor, note) "
+                + "values (?, ?, ?, ?, ?)",
+                bookingId, moment.type().name(), moment.occurredAt(), ACTOR, moment.note());
+        }
+    }
+
+    /** Nothing the seed writes may be dated after the moment the seed ran. */
+    private static Instant notAfter(Instant instant, Instant now) {
+        return instant == null || instant.isBefore(now) ? instant : now;
     }
 
     private Long frontDeskOf(String branch) {

@@ -82,6 +82,14 @@ class SeedDataTest {
         assertThat(bookings.findByGuestEmail("guest@example.com")).hasSize(2);
     }
 
+    @Test
+    void theStaffAndManagerAccountsAreLinkedToTheirEmployee() {
+        assertThat(employeeEmailFor("staff")).isEqualTo("ben.sample@example.com");
+        assertThat(employeeEmailFor("manager")).isEqualTo("ada.example@example.com");
+        assertThat(jdbc.queryForObject("select count(*) from user_account "
+            + "where username = 'guest' and employee_id is null", Integer.class)).isEqualTo(1);
+    }
+
     // --- invoices -------------------------------------------------------------------------------
 
     @Test
@@ -105,6 +113,12 @@ class SeedDataTest {
 
             assertLinesMatch(invoice, expected.lines());
         }
+    }
+
+    @Test
+    void everyBookingIsChargedTheRateOfTheRoomItHolds() {
+        assertThat(jdbc.queryForObject("select count(*) from booking b join room r "
+            + "on r.id = b.room_id where b.nightly_rate <> r.nightly_rate", Integer.class)).isZero();
     }
 
     @Test
@@ -162,20 +176,28 @@ class SeedDataTest {
 
     // --- the nightly reset runs the same class ----------------------------------------------------
 
+    /**
+     * Every context in this JVM shares one database, so the finally block puts a single clean seed
+     * back however far through the body a failure happened.
+     */
     @Test
     void deletingEverythingAndSeedingAgainRestoresTheSameCounts() {
         SeedData seedData = new SeedData(jdbc, clock);
+        try {
+            seedData.deleteAll();
+            assertThat(count("booking")).isZero();
+            assertThat(count("branch")).isZero();
+            assertThat(count("app_metadata")).isZero();
 
-        seedData.deleteAll();
-        assertThat(count("booking")).isZero();
-        assertThat(count("branch")).isZero();
-        assertThat(count("app_metadata")).isZero();
+            seedData.seed();
 
-        seedData.seed();
-
-        assertThat(countsInDatabase()).isEqualTo(SeedData.expectedCounts());
-        assertThat(bookings.arrivals(null, today())).hasSize(3);
-        assertThat(bookings.departures(null, today())).hasSize(4);
+            assertThat(countsInDatabase()).isEqualTo(SeedData.expectedCounts());
+            assertThat(bookings.arrivals(null, today())).hasSize(3);
+            assertThat(bookings.departures(null, today())).hasSize(4);
+        } finally {
+            seedData.deleteAll();
+            seedData.seed();
+        }
     }
 
     // --- plumbing ----------------------------------------------------------------------------------
@@ -204,6 +226,11 @@ class SeedDataTest {
     private String metadata(String key) {
         return jdbc.queryForObject("select meta_value from app_metadata where meta_key = ?",
             String.class, key);
+    }
+
+    private String employeeEmailFor(String username) {
+        return jdbc.queryForObject("select e.email from user_account u "
+            + "join employee e on e.id = u.employee_id where u.username = ?", String.class, username);
     }
 
     private int invoicesWithStatus(String status) {
