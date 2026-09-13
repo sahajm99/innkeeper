@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout('Something went wrong', ~{::main})}">
+<body>
+<main>
+    <h1>Something went wrong</h1>
+    <p>The request did not finish. Nothing you typed was saved.</p>
+    <p th:if="${message}" th:text="${message}">What went wrong.</p>
+    <p>Status: <span th:text="${status}">500</span></p>
+    <p>Request id: <span th:text="${requestId}">n/a</span></p>
+    <p><a th:href="@{/}">Back to the front desk</a></p>
+</main>
+</body>
+</html>

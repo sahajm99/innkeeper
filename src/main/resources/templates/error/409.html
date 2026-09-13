@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout('Somebody got there first', ~{::main})}">
+<body>
+<main>
+    <h1>Somebody got there first</h1>
+    <p th:if="${message}" th:text="${message}">That room was just taken for those dates.</p>
+    <p>Nothing was changed. Try other dates or another room.</p>
+    <p>Request id: <span th:text="${requestId}">n/a</span></p>
+    <p><a th:href="@{/rooms}">Look for another room</a></p>
+</main>
+</body>
+</html>

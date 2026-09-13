@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout('Managers only', ~{::main})}">
+<body>
+<main>
+    <h1>Managers only</h1>
+    <p>Your account cannot open that page. Sign in as a manager, or go back to the desk.</p>
+    <p th:if="${message}" th:text="${message}">What was refused.</p>
+    <p>Request id: <span th:text="${requestId}">n/a</span></p>
+    <p><a th:href="@{/staff}">Back to the desk</a></p>
+</main>
+</body>
+</html>

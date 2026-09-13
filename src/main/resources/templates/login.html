@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout('Staff sign in', ~{::main})}">
+<body>
+<main>
+    <h1>Staff sign in</h1>
+    <p th:if="${param.error}">Wrong username or password.</p>
+    <p th:if="${param.logout}">You have been signed out.</p>
+    <form method="post" th:action="@{/login}">
+        <p>
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" autocomplete="username" required>
+        </p>
+        <p>
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" autocomplete="current-password"
+                   required>
+        </p>
+        <p><button type="submit">Sign in</button></p>
+    </form>
+    <h2>Demo accounts</h2>
+    <p>Nothing is behind them but fictional data, so the passwords are printed here.</p>
+    <ul>
+        <li th:each="account : ${accounts}">
+            <span th:text="${account.username}">staff</span> /
+            <span th:text="${account.password}">staff123</span>
+            (<span th:text="${account.role}">STAFF</span>)
+        </li>
+    </ul>
+</main>
+</body>
+</html>

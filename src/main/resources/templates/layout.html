@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="layout(title, content)" lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${title}">Innkeeper</title>
+</head>
+<body>
+<p>Demo hotel group with fictional data. Resets nightly at 03:00 Central. Free-tier hosting: the
+    first load can take up to a minute or two.</p>
+<header>
+    <a th:href="@{/}">Innkeeper</a>
+    <nav>
+        <a th:href="@{/rooms}">Rooms</a>
+        <a th:href="@{/my-bookings}">Find my booking</a>
+        <a th:href="@{/complaints/new}">Complaints</a>
+        <a th:href="@{/about}">About</a>
+        <a th:href="@{/login}">Staff sign in</a>
+    </nav>
+</header>
+<p th:if="${message}" th:text="${message}">Something worked.</p>
+<p th:if="${error}" th:text="${error}">Something did not.</p>
+<main th:replace="${content}">
+    <p>The page content goes here.</p>
+</main>
+<footer>
+    <p><a th:href="@{/about}">Under the hood</a></p>
+</footer>
+</body>
+</html>
