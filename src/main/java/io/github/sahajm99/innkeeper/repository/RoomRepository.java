@@ -41,6 +41,17 @@ public interface RoomRepository extends JpaRepository<Room, Long> {
     List<Room> findByBranchIdOrderByRoomNumber(Long branchId);
 
     /**
+     * One room with its type and branch loaded, for a caller that reads them after the transaction
+     * closes - which is every page and every API response, because open-in-view is off.
+     */
+    @Query("select r from Room r join fetch r.roomType join fetch r.branch where r.id = :id")
+    Optional<Room> findDetailed(@Param("id") Long id);
+
+    /** The cheapest room a branch has, which is the "from" price on its card. Null when it has none. */
+    @Query("select min(r.nightlyRate) from Room r where r.branch.id = :branchId")
+    BigDecimal minimumRate(@Param("branchId") Long branchId);
+
+    /**
      * The rooms in one status with their branch loaded, which is how the maintenance board lists
      * what is out of service. Pass a null branch for every branch.
      */
