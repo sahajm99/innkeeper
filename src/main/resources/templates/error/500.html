@@ -1,13 +1,23 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout('Something went wrong', ~{::main})}">
 <body>
-<main>
+<main class="shell measure" id="main">
     <h1>Something went wrong</h1>
-    <p>The request did not finish. Nothing you typed was saved.</p>
-    <p th:if="${message}" th:text="${message}">What went wrong.</p>
-    <p>Status: <span th:text="${status}">500</span></p>
-    <p>Request id: <span th:text="${requestId}">n/a</span></p>
-    <p><a th:href="@{/}">Back to the front desk</a></p>
+    <div class="prose">
+        <p class="lede">The request did not finish. Nothing you typed was saved.</p>
+        <p th:if="${message}" th:text="${message}">What went wrong.</p>
+    </div>
+    <dl class="dl-ledger">
+        <div>
+            <dt>Status</dt>
+            <dd th:text="${status}">500</dd>
+        </div>
+        <div>
+            <dt>Request id</dt>
+            <dd th:text="${requestId}">n/a</dd>
+        </div>
+    </dl>
+    <p class="actions"><a class="btn btn-outline" th:href="@{/}">Back to the front desk</a></p>
 </main>
 </body>
 </html>

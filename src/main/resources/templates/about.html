@@ -1,40 +1,75 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout('About this demo', ~{::main})}">
 <body>
-<main>
+<main class="shell measure" id="main">
+  <div class="prose">
     <h1>About this demo</h1>
 
-    <p>Innkeeper is a rebuild of a university database course project: a hotel management system for
-        a small Texas chain. Everything in it is fictional and it is wiped and re-seeded every
-        night.</p>
-    <p>The schema is not the one the course handed out. Every change and the reason for it is
-        listed in
-        <a href="https://github.com/sahajm99/innkeeper/blob/main/docs/SCHEMA-CHANGES.md">
-            SCHEMA-CHANGES</a>.</p>
+    <p class="lede">Innkeeper is a rebuild of a university database course project: a hotel
+      management system for a small Texas chain. Everything in it is fictional and it is wiped and
+      re-seeded every night.</p>
+    <p>The course version was a Swing desktop application over MySQL, and it could double-book a
+      room, because it checked availability by room type rather than by room. This one holds one row
+      per room and night behind a unique index, so the database refuses the second booking however
+      many people press the button at once. The button on the front page proves it ten at a
+      time.</p>
+    <p>The schema is not the one the course handed out. Every change and the reason for it is listed
+      in <a href="https://github.com/sahajm99/innkeeper/blob/main/docs/SCHEMA-CHANGES.md">SCHEMA-CHANGES</a>.</p>
 
+  </div>
+
+  <div class="columns">
+    <section>
     <h2>This build</h2>
-    <dl>
+    <dl class="dl-ledger">
+      <div>
         <dt>Commit</dt>
         <dd th:text="${info.commit}">unknown</dd>
+      </div>
+      <div>
         <dt>Commit time</dt>
         <dd th:text="${info.commitTime}">unknown</dd>
+      </div>
+      <div>
         <dt>Build time</dt>
         <dd th:text="${info.buildTime}">unknown</dd>
+      </div>
+      <div>
         <dt>Active profile</dt>
         <dd th:text="${info.profile}">demo</dd>
+      </div>
     </dl>
 
+    </section>
+    <section>
     <h2>Under the hood</h2>
-    <dl>
+    <dl class="dl-ledger">
+      <div>
         <dt>Database</dt>
         <dd th:text="${info.database}">H2 2.3.232</dd>
+      </div>
+      <div>
         <dt>Connection pool</dt>
         <dd th:text="${info.poolStats}">0 active, 1 idle, 1 total</dd>
+      </div>
+      <div>
         <dt>Data seeded</dt>
         <dd th:text="${info.seededAt.isPresent()} ? ${info.seededAt.get()} : 'not yet'">unknown</dd>
+      </div>
+      <div>
         <dt>Last reset</dt>
         <dd th:text="${info.lastResetAt.isPresent()} ? ${info.lastResetAt.get()} : 'not yet'">unknown</dd>
+      </div>
     </dl>
+
+    </section>
+  </div>
+
+  <div class="prose">
+    <h2>The API</h2>
+    <p>Everything the pages do is also a JSON endpoint, documented and browsable at
+      <a th:href="@{/api/docs}">/api/docs</a>.</p>
+  </div>
 </main>
 </body>
 </html>

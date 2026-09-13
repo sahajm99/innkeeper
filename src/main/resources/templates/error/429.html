@@ -1,13 +1,15 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout('Too many requests', ~{::main})}">
 <body>
-<main>
+<main class="shell measure" id="main">
     <h1>Too many requests</h1>
-    <p>This is a small demo on free hosting, so bookings and complaints are limited to twenty an
-        hour from one address. Try again later.</p>
-    <p th:if="${message}" th:text="${message}">What was refused.</p>
-    <p>Request id: <span th:text="${requestId}">n/a</span></p>
-    <p><a th:href="@{/}">Back to the front desk</a></p>
+    <div class="prose">
+        <p class="lede">This is a small demo on free hosting, so bookings and complaints are limited
+            to twenty an hour from one address. Try again later.</p>
+        <p th:if="${message}" th:text="${message}">What was refused.</p>
+    </div>
+    <p class="note">Request id <span th:text="${requestId}">n/a</span></p>
+    <p class="actions"><a class="btn btn-outline" th:href="@{/}">Back to the front desk</a></p>
 </main>
 </body>
 </html>

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Innkeeper">
+  <title>Innkeeper</title>
+  <rect width="32" height="32" rx="3" fill="#5B3A29"/>
+  <g fill="#C9A56B">
+    <path d="M11 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0 3a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"/>
+    <rect x="14" y="10.5" width="13" height="3"/>
+    <rect x="20" y="13.5" width="3" height="4"/>
+    <rect x="25" y="13.5" width="2" height="6"/>
+  </g>
+</svg>

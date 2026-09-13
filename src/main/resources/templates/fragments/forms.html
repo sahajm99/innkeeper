@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<body>
+
+<!-- Every refusal the server made, at the top of the form, taking focus. Inserted inside a
+     th:object form, so #fields reads that form's binding result. -->
+<div th:fragment="summary(heading)" class="form-errors" tabindex="-1" role="alert"
+     th:if="${#fields.hasAnyErrors()}">
+  <p th:text="${heading}">Check these fields before booking.</p>
+  <ul>
+    <li th:each="problem : ${#fields.allErrors()}" th:text="${problem}">What was wrong.</li>
+  </ul>
+</div>
+
+<!-- The same message again under the field it belongs to, because a summary alone makes people
+     hunt. Call as ~{fragments/forms :: error('lastName')}. -->
+<span th:fragment="error(field)" class="field-error" th:if="${#fields.hasErrors(field)}"
+      th:errors="*{__${field}__}">What was wrong.</span>
+
+</body>
+</html>

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="en">
+<body>
+<th:block th:fragment="header">
+  <div class="demo-strip">
+    <p class="shell" th:classappend="${shell} ?: 'measure'">Demo hotel group with fictional data.
+      Resets nightly at 03:00 Central. Free-tier hosting: the first load can take up to a minute or
+      two.</p>
+  </div>
+  <header class="site-header">
+    <div class="shell header-inner" th:classappend="${shell} ?: 'measure'">
+      <a class="wordmark" th:href="@{/}">Innkeeper</a>
+      <nav class="nav" aria-label="Main">
+        <th:block sec:authorize="!hasAnyRole('STAFF', 'MANAGER')">
+          <a th:href="@{/rooms}" th:attr="aria-current=${path == '/rooms' ? 'page' : null}">Rooms</a>
+          <a th:href="@{/my-bookings}"
+             th:attr="aria-current=${path == '/my-bookings' ? 'page' : null}">Find my booking</a>
+          <a th:href="@{/complaints/new}"
+             th:attr="aria-current=${path == '/complaints/new' ? 'page' : null}">Complaints</a>
+        </th:block>
+        <th:block sec:authorize="hasAnyRole('STAFF', 'MANAGER')">
+          <a th:href="@{/staff}" th:attr="aria-current=${path == '/staff' ? 'page' : null}">Desk</a>
+          <a th:href="@{/staff/bookings}">Bookings</a>
+          <a th:href="@{/staff/maintenance}">Maintenance</a>
+          <a th:href="@{/staff/inventory}">Inventory</a>
+          <a th:href="@{/staff/complaints}">Complaints</a>
+          <a th:href="@{/staff/employees}" sec:authorize="hasRole('MANAGER')">Employees</a>
+        </th:block>
+        <a th:href="@{/about}" th:attr="aria-current=${path == '/about' ? 'page' : null}">About</a>
+        <a th:href="@{/login}" sec:authorize="isAnonymous()">Staff sign in</a>
+        <form th:action="@{/logout}" method="post" sec:authorize="isAuthenticated()">
+          <button type="submit" class="linkish">Sign out</button>
+        </form>
+        <button type="button" class="theme-toggle" id="theme-toggle"
+                aria-pressed="false">Dark theme</button>
+      </nav>
+    </div>
+  </header>
+</th:block>
+</body>
+</html>

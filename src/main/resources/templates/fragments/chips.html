@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<body>
+
+<!-- A booking's status, written the way a person says it rather than the way the column spells
+     it. Colour is never the only signal: the word is the signal, the colour agrees with it. -->
+<span th:fragment="status(status)" class="chip"
+      th:with="labels=${ {'CONFIRMED':'Confirmed','CHECKED_IN':'Checked in',
+                          'CHECKED_OUT':'Checked out','CANCELLED':'Cancelled'} }"
+      th:classappend="${'chip-' + #strings.replace(#strings.toLowerCase(status), '_', '-')}"
+      th:text="${labels.get(status.toString())}">Confirmed</span>
+
+</body>
+</html>

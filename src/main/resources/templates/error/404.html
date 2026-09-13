@@ -1,13 +1,15 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout('Page not found', ~{::main})}">
 <body>
-<main>
+<main class="shell measure" id="main">
     <h1>No such page</h1>
-    <p>That address does not lead anywhere. It may have been part of the demo data before the last
-        nightly reset.</p>
-    <p th:if="${message}" th:text="${message}">What was missing.</p>
-    <p>Request id: <span th:text="${requestId}">n/a</span></p>
-    <p><a th:href="@{/}">Back to the front desk</a></p>
+    <div class="prose">
+        <p class="lede">That address does not lead anywhere. It may have been part of the demo data
+            before the last nightly reset.</p>
+        <p th:if="${message}" th:text="${message}">What was missing.</p>
+    </div>
+    <p class="note">Request id <span th:text="${requestId}">n/a</span></p>
+    <p class="actions"><a class="btn btn-outline" th:href="@{/}">Back to the front desk</a></p>
 </main>
 </body>
 </html>

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<body>
+<footer class="site-footer" th:fragment="footer">
+  <div class="shell" th:classappend="${shell} ?: 'measure'">
+    <p th:if="${underTheHood}">
+      <a th:href="@{/about}">Under the hood</a>: commit
+      <span th:text="${underTheHood.commit}">unknown</span> running on
+      <span th:text="${underTheHood.database}">H2 2.3.232</span>, data last reset
+      <span th:text="${underTheHood.lastResetAt.isPresent()}
+                     ? ${dates.format(underTheHood.lastResetAt.get())} : 'never'">never</span>.
+    </p>
+    <p th:unless="${underTheHood}"><a th:href="@{/about}">Under the hood</a>: the build, the
+      database and the last reset.</p>
+    <p>Innkeeper is a portfolio rebuild of a university database project. Every guest, booking and
+      employee in it is invented, and the whole database is thrown away and reseeded each night.
+      Please do not type anything real into it.</p>
+  </div>
+</footer>
+</body>
+</html>

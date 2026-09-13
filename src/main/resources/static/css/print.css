@@ -1,0 +1,77 @@
+/* Paper. The invoice is the page anybody actually prints, so the palette goes back to light
+   whatever the screen was set to, and everything that is not the document itself comes off. */
+
+@media print {
+  html:root,
+  html:root[data-theme="dark"],
+  html:root[data-theme="light"] {
+    --paper: #ffffff;
+    --ink: #1F1A17;
+    --walnut: #5B3A29;
+    --brass: #B08D57;
+    --brass-text: #7A5C30;
+    --pine: #2F5D50;
+    --signal: #A4442E;
+    --line: #8A7E6E;
+    --mist: #ffffff;
+
+    --accent: #5B3A29;
+    --on-accent: #ffffff;
+
+    color-scheme: light;
+  }
+
+  body {
+    background: #ffffff;
+    color: #1F1A17;
+    font-size: 11pt;
+  }
+
+  .demo-strip,
+  .site-header,
+  .site-footer,
+  .skip,
+  .flash,
+  .actions,
+  .no-print {
+    display: none !important;
+  }
+
+  main {
+    padding: 0;
+  }
+
+  .shell {
+    max-width: none;
+    padding: 0;
+  }
+
+  .panel,
+  .summary,
+  .branch-card,
+  .race {
+    background: #ffffff;
+    border: 1px solid #8A7E6E;
+  }
+
+  .ledger-row:nth-child(even) {
+    background: #ffffff;
+  }
+
+  .scroll-x {
+    overflow-x: visible;
+  }
+
+  a {
+    color: #1F1A17;
+    text-decoration: none;
+  }
+
+  table {
+    page-break-inside: auto;
+  }
+
+  tr {
+    page-break-inside: avoid;
+  }
+}
