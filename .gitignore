@@ -22,3 +22,4 @@ Thumbs.db
 # Secrets
 .env
 *.local
+.gstack/

@@ -25,3 +25,16 @@ One entry per milestone with how it was verified.
   in PostgreSQL mode, 15 seed tests, 4 PostgreSQL Testcontainers tests against `postgres:16-alpine`
   that confirm the migrations and identity sequences on the real engine); each task had a
   fresh-context code review with fixes applied (`.superpowers` ledger, not committed).
+
+## (b) Booking domain and API, (c) security and staff flows (2026-09-12/13)
+
+- Tasks 5-8 and 10: booking creation with the room-night guard translated at a `REQUIRES_NEW`
+  transaction boundary, cancellation, availability and invoices; staff services; Spring Security
+  with the three roles; request ids, structured logs, rate limiting, nightly reset and the about
+  page; the JSON API with OpenAPI at `/api/docs` and the race demo.
+- Verified: `mvn -q -B test` runs 274 tests green, including `BookingRaceTest` (8 threads on H2)
+  and `PostgresBookingRaceTest` (8 threads on `postgres:16-alpine`), each leaving exactly one
+  booking; the suite is order-independent (`-Dsurefire.runOrder=reversealphabetical`).
+- Docker: `docker build` from a clean `git archive HEAD` succeeds (the AppCDS training run
+  included); the container answers `/actuator/health` UP three seconds after start, serves
+  `/about`, `/login`, `/api/docs` and `/api/branches`, uses 274 MB RSS, and logs no ERROR lines.
