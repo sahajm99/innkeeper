@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout('Room', ~{::main})}">
+<body>
+<main class="shell measure" id="main">
+  <h1 th:text="|Room ${room.roomNumber}, ${type.name}|">Room 101, Standard Queen</h1>
+  <p class="lede">
+    <span th:text="${branch.name}">Denton Square</span>,
+    <span th:text="${branch.city}">Denton</span>.
+    <span th:text="${dates.money(room.nightlyRate)}">$89.00</span> a night, sleeps
+    <span th:text="${type.maxOccupancy}">2</span>.</p>
+
+  <p class="banner" th:if="${blockedMessage}" th:text="${blockedMessage}">Not available 3 to
+    6 Oct. Next 3-night opening: 9 Oct.</p>
+
+  <h2>The register</h2>
+  <p class="prose">Every night this room is already spoken for is hatched. Choose the night you
+    arrive, then the morning you leave.</p>
+
+  <form method="get" th:action="@{/book}">
+    <input type="hidden" name="roomId" th:value="${room.id}">
+    <input type="hidden" name="guests" th:value="${search.guests}">
+    <input type="hidden" name="checkIn" id="strip-check-in"
+           th:value="${requestedFree} ? ${search.checkIn} : ''">
+    <input type="hidden" name="checkOut" id="strip-check-out"
+           th:value="${requestedFree} ? ${search.checkOut} : ''">
+
+    <div class="strip-frame">
+      <div class="strip-days" aria-hidden="true">
+        <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span>
+        <span>Fri</span><span>Sat</span>
+      </div>
+      <div class="strip" role="grid" th:attr="data-rate=${room.nightlyRate}"
+           aria-label="Availability for the next 60 days">
+        <div class="strip-week" role="row" th:each="week : ${weeks}">
+          <th:block th:each="night : ${week}">
+            <span class="pad" th:unless="${night}"></span>
+            <button th:if="${night}" class="night" name="night" th:value="${night.date}"
+                    th:type="${night.available} ? 'submit' : 'button'"
+                    th:classappend="${night.today} ? 'night-today'"
+                    th:attr="role='gridcell',
+                             data-date=${night.date},
+                             data-available=${night.available},
+                             aria-disabled=${night.available} ? null : 'true',
+                             aria-label=|${dates.format(night.date)}, ${night.available ? 'available' : 'booked'}|,
+                             tabindex=${night.date == stripFrom} ? '0' : '-1'"
+                    aria-pressed="false">
+              <span class="month" th:if="${night.monthStart}"
+                    th:text="${night.monthLabel}">Oct</span>
+              <span th:text="${night.dayLabel}">3</span>
+            </button>
+          </th:block>
+        </div>
+      </div>
+    </div>
+
+    <ul class="strip-legend">
+      <li><span class="swatch swatch-free"></span> Free</li>
+      <li><span class="swatch swatch-booked"></span> Booked</li>
+      <li><span class="swatch swatch-picked"></span> Your nights</li>
+    </ul>
+
+    <p class="strip-status" id="strip-status" role="status" aria-live="polite"
+       th:text="${stripStatus}">Pick your first night.</p>
+
+    <p class="actions">
+      <button type="submit" class="btn btn-primary" id="strip-book"
+              th:disabled="${!requestedFree}">Book this room</button>
+      <span class="note">Choosing one night in the register books that night.</span>
+    </p>
+    <noscript>
+      <p class="note">Without JavaScript each night in the register books that one night. To pick
+        a longer stay, set the dates on the <a th:href="@{/rooms}">rooms page</a> first.</p>
+    </noscript>
+  </form>
+
+  <h2>The room</h2>
+  <div class="prose">
+    <p th:text="${type.description}">A quiet room with one queen bed, a desk by the window and a
+      walk-in shower.</p>
+    <p th:if="${room.notes}" th:text="${room.notes}">Notes about this room.</p>
+  </div>
+  <dl class="dl-ledger">
+    <div>
+      <dt>Beds</dt>
+      <dd th:text="${type.bedSetup}">One queen bed</dd>
+    </div>
+    <div>
+      <dt>Sleeps</dt>
+      <dd th:text="${dates.guests(type.maxOccupancy)}">2 guests</dd>
+    </div>
+    <div>
+      <dt>Floor</dt>
+      <dd th:text="${room.floor}">1</dd>
+    </div>
+    <div>
+      <dt>Hotel</dt>
+      <dd><span th:text="${branch.name}">Denton Square</span>,
+        <span th:text="${branch.addressLine}">101 Example Street</span>,
+        <span th:text="${branch.city}">Denton</span></dd>
+    </div>
+  </dl>
+
+  <script th:src="@{/js/strip.js}" defer></script>
+</main>
+</body>
+</html>

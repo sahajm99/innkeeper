@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout('Rooms in Denton, Fort Worth and Austin', ~{::main})}">
+<body>
+<main class="shell measure" id="main">
+  <h1>Rooms in Denton, Fort Worth and Austin</h1>
+  <p class="lede">Three small hotels, thirty rooms between them, and a register you can read.
+    Pick your nights and see exactly what is still free.</p>
+
+  <div th:replace="~{fragments/search :: search('Find a room', 'Search rooms')}"></div>
+
+  <h2>The three hotels</h2>
+  <ul class="branches">
+    <li class="branch-card" th:each="card : ${branchCards}">
+      <h3><a th:href="@{'/rooms?branchId=' + ${card.id} + '&' + ${carry}}"
+             th:text="${card.name}">Denton Square</a></h3>
+      <p class="where" th:text="${card.city} + ', Texas'">Denton, Texas</p>
+      <p class="tagline" th:text="${card.tagline}">Twelve rooms on the courthouse square</p>
+      <p class="from-rate" th:if="${card.fromRate}">
+        From <span th:text="${dates.money(card.fromRate)}">$89.00</span> a night</p>
+    </li>
+  </ul>
+
+  <section class="race">
+    <h2>Two guests, one room, one night</h2>
+    <p class="prose">The course project this rebuilds checked availability by room type rather
+      than by room, so two guests could be sold the same room. Here every night a room is held is
+      a row of its own behind a unique index, and the database is what refuses the second
+      booking. Press the button to send ten bookings for the same night at the same instant.</p>
+    <p class="actions">
+      <button type="button" class="btn btn-outline" id="race-button">Run the race</button>
+    </p>
+    <p class="race-result" id="race-result" role="status" aria-live="polite">Nothing has run yet.
+      The result will say how many bookings were made and how many the database refused.</p>
+    <p class="race-detail" id="race-detail"></p>
+    <noscript>
+      <p class="note">The race needs JavaScript. Everything else on the site works without
+        it.</p>
+    </noscript>
+  </section>
+
+  <script th:src="@{/js/race.js}" defer></script>
+  <script th:src="@{/js/focus-errors.js}" defer></script>
+</main>
+</body>
+</html>

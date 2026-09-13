@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout('Your booking', ~{::main})}">
+<body>
+<main class="shell measure" id="main">
+  <div class="page-head">
+    <h1>Your booking</h1>
+    <span th:replace="~{fragments/chips :: status(${booking.status})}"></span>
+  </div>
+
+  <div class="code-hero">
+    <p class="code" id="booking-code" th:text="${booking.code}">INN-4KQ7ZD</p>
+    <p class="actions">
+      <button type="button" class="btn btn-outline btn-small" data-copy="#booking-code">Copy code</button>
+    </p>
+    <p>Keep this code and your email. You need both to view or cancel the booking.</p>
+    <p class="code-email" th:text="${booking.guestEmail}">ada@example.com</p>
+  </div>
+
+  <p class="flash flash-error" th:if="${booking.status.name() == 'CANCELLED'}"
+     th:text="${booking.cancellationFee != null and booking.cancellationFee.signum() > 0}
+       ? 'This booking is cancelled. The fee of ' + ${dates.money(booking.cancellationFee)}
+         + ' is recorded on the invoice.'
+       : 'This booking is cancelled. There was nothing to pay.'">
+    This booking is cancelled.</p>
+
+  <div class="layout-split">
+    <section class="summary" th:if="${booking.invoice}">
+      <h2>What it costs</h2>
+      <dl>
+        <div>
+          <dt th:text="${dates.nights(booking.nights)} + ' at '
+                       + ${dates.money(booking.nightlyRate)}">3 nights at $89.00</dt>
+          <dd th:text="${dates.money(booking.invoice.roomSubtotal)}">$267.00</dd>
+        </div>
+        <div>
+          <dt>Occupancy tax</dt>
+          <dd th:text="${dates.money(booking.invoice.tax)}">$34.71</dd>
+        </div>
+        <div th:if="${booking.invoice.fines.signum() > 0}">
+          <dt>Fines</dt>
+          <dd th:text="${dates.money(booking.invoice.fines)}">$0.00</dd>
+        </div>
+        <div th:if="${booking.invoice.cancellationFee.signum() > 0}">
+          <dt>Cancellation fee</dt>
+          <dd th:text="${dates.money(booking.invoice.cancellationFee)}">$89.00</dd>
+        </div>
+        <div class="total">
+          <dt>Total</dt>
+          <dd th:text="${dates.money(booking.invoice.total)}">$301.71</dd>
+        </div>
+      </dl>
+      <p class="actions">
+        <a class="btn btn-outline btn-small"
+           th:href="@{'/bookings/' + ${booking.code} + '/invoice'}">View invoice</a>
+      </p>
+    </section>
+
+    <div>
+      <h2>The stay</h2>
+      <dl class="dl-ledger">
+        <div>
+          <dt>Guest</dt>
+          <dd th:text="${booking.guestName()}">Ada Example</dd>
+        </div>
+        <div>
+          <dt>Hotel</dt>
+          <dd th:text="${booking.branchName}">Denton Square</dd>
+        </div>
+        <div>
+          <dt>Room</dt>
+          <dd th:text="'Room ' + ${booking.roomNumber} + ', ' + ${booking.roomTypeName}">Room 101,
+            Standard Queen</dd>
+        </div>
+        <div>
+          <dt>Check in</dt>
+          <dd th:text="${dates.format(booking.checkIn)}">Fri 3 Oct 2026</dd>
+        </div>
+        <div>
+          <dt>Check out</dt>
+          <dd th:text="${dates.format(booking.checkOut)}">Mon 6 Oct 2026</dd>
+        </div>
+        <div>
+          <dt>Guests</dt>
+          <dd th:text="${dates.guests(booking.adults + booking.children)}">2 guests</dd>
+        </div>
+        <div th:if="${booking.specialRequests}">
+          <dt>You asked for</dt>
+          <dd th:text="${booking.specialRequests}">A quiet room if one is free</dd>
+        </div>
+      </dl>
+
+      <th:block th:if="${booking.cancellable()}">
+        <p class="note" th:if="${booking.cancellationCosts()}"
+           th:text="|Cancelling now adds a ${dates.money(booking.cancellationFeeNow)} fee to your invoice.|">
+          Cancelling now adds a $89.00 fee to your invoice.</p>
+        <p class="note" th:unless="${booking.cancellationCosts()}"
+           th:text="|Free to cancel until ${dates.deadline(booking.cancellationDeadline, booking.zone)}.|">
+          Free to cancel until 3 pm, Wed 1 Oct.</p>
+        <p class="actions">
+          <a class="btn btn-danger"
+             th:href="@{'/bookings/' + ${booking.code} + '/cancel'}">Cancel booking</a>
+        </p>
+      </th:block>
+    </div>
+  </div>
+</main>
+</body>
+</html>

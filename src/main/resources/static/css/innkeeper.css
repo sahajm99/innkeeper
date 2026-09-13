@@ -151,7 +151,7 @@ h4 {
 
 h1 {
   font-size: var(--text-2xl);
-  max-width: 22ch;
+  max-width: 26ch;
 }
 
 h2 {
@@ -624,6 +624,7 @@ main {
 
 .chip {
   display: inline-block;
+  font-family: var(--sans);
   font-size: var(--text-xs);
   line-height: 1.4;
   padding: 1px var(--space-2);
@@ -895,6 +896,22 @@ tfoot tr:first-child td {
   border-bottom: 1px solid var(--line);
   border-radius: 0;
   cursor: pointer;
+}
+
+.pad {
+  display: block;
+  min-height: 3.25rem;
+  background: var(--paper);
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.strip-week:last-child .pad {
+  border-bottom: 0;
+}
+
+.pad:nth-child(7n) {
+  border-right: 0;
 }
 
 .strip-week:last-child .night {
@@ -1235,4 +1252,22 @@ tfoot tr:first-child td {
   .columns > section > h2 {
     margin-top: var(--space-6);
   }
+}
+
+/* --- a page title with its status beside it ------------------------------------------------ */
+
+.page-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2) var(--space-4);
+  margin-bottom: var(--space-5);
+}
+
+.page-head h1 {
+  margin-bottom: 0;
+}
+
+.code-hero {
+  margin-top: var(--space-6);
 }

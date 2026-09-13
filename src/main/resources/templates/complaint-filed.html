@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout('Complaint filed', ~{::main})}">
+<body>
+<main class="shell measure" id="main">
+  <h1>Complaint filed</h1>
+
+  <div class="code-hero">
+    <p class="code" id="ticket-number" th:text="${ticket}">CMP-7TQ4KD</p>
+    <p class="actions">
+      <button type="button" class="btn btn-outline btn-small" data-copy="#ticket-number">Copy
+        ticket</button>
+    </p>
+    <p>Keep this ticket number. The desk at
+      <span th:text="${branchName}">Denton Square</span> has it now.</p>
+  </div>
+
+  <div class="prose">
+    <p>It is filed under <span th:text="${#strings.toLowerCase(category)}">the room</span>, and
+      somebody will pick it up from the complaints queue. In this demo nothing is emailed, and the
+      whole database is reseeded overnight.</p>
+  </div>
+
+  <p class="actions">
+    <a class="btn btn-outline" th:href="@{/}">Back to the front desk</a>
+    <a class="btn btn-outline" th:href="@{/complaints/new}">File another</a>
+  </p>
+</main>
+</body>
+</html>

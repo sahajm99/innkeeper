@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout('Tell us what went wrong', ~{::main})}">
+<body>
+<main class="shell measure" id="main">
+  <h1>Tell us what went wrong</h1>
+  <p class="lede">Every complaint gets a ticket number and lands on the desk of the hotel it is
+    about. Attaching your booking is optional; it helps the desk find the stay.</p>
+
+  <form method="post" th:action="@{/complaints/new}" th:object="${complaint}" class="prose">
+    <div th:replace="~{fragments/forms :: summary('Check these fields before sending.')}"></div>
+    <p class="note">Demo: do not enter real personal data. Everything is wiped nightly.</p>
+
+    <p class="field" th:classappend="${#fields.hasErrors('branchId')} ? 'field-invalid'">
+      <label for="branchId">Which hotel</label>
+      <select id="branchId" th:field="*{branchId}" required>
+        <option value="">Choose one</option>
+        <option th:each="branch : ${branchList}" th:value="${branch.id}"
+                th:text="${branch.name} + ', ' + ${branch.city}">Denton Square, Denton</option>
+      </select>
+      <span th:replace="~{fragments/forms :: error('branchId')}"></span>
+    </p>
+
+    <p class="field" th:classappend="${#fields.hasErrors('category')} ? 'field-invalid'">
+      <label for="category">What is it about</label>
+      <select id="category" th:field="*{category}" required>
+        <option value="">Choose one</option>
+        <option th:each="choice : ${categories}" th:value="${choice.value}"
+                th:text="${choice.label}">The room</option>
+      </select>
+      <span th:replace="~{fragments/forms :: error('category')}"></span>
+    </p>
+
+    <div class="field-row">
+      <p class="field" th:classappend="${#fields.hasErrors('guestName')} ? 'field-invalid'">
+        <label for="guestName">Your name</label>
+        <input type="text" id="guestName" th:field="*{guestName}" autocomplete="name" required>
+        <span th:replace="~{fragments/forms :: error('guestName')}"></span>
+      </p>
+      <p class="field" th:classappend="${#fields.hasErrors('guestEmail')} ? 'field-invalid'">
+        <label for="guestEmail">Your email</label>
+        <input type="email" id="guestEmail" th:field="*{guestEmail}" autocomplete="email"
+               required>
+        <span th:replace="~{fragments/forms :: error('guestEmail')}"></span>
+      </p>
+    </div>
+
+    <div class="field-row">
+      <p class="field" th:classappend="${#fields.hasErrors('bookingCode')} ? 'field-invalid'">
+        <label for="bookingCode">Confirmation code, if you have one</label>
+        <input type="text" id="bookingCode" th:field="*{bookingCode}" placeholder="INN-4KQ7ZD"
+               autocapitalize="characters" spellcheck="false">
+        <span th:replace="~{fragments/forms :: error('bookingCode')}"></span>
+      </p>
+      <p class="field" th:classappend="${#fields.hasErrors('bookingEmail')} ? 'field-invalid'">
+        <label for="bookingEmail">The email that booking used</label>
+        <input type="email" id="bookingEmail" th:field="*{bookingEmail}">
+        <span class="field-hint">Both are needed to attach the stay.</span>
+        <span th:replace="~{fragments/forms :: error('bookingEmail')}"></span>
+      </p>
+    </div>
+
+    <p class="field" th:classappend="${#fields.hasErrors('description')} ? 'field-invalid'">
+      <label for="description">What happened</label>
+      <textarea id="description" th:field="*{description}" required></textarea>
+      <span th:replace="~{fragments/forms :: error('description')}"></span>
+    </p>
+
+    <p class="honeypot" aria-hidden="true">
+      <label for="website">Leave this empty</label>
+      <input type="text" id="website" th:field="*{website}" tabindex="-1" autocomplete="off">
+    </p>
+
+    <p class="actions"><button type="submit" class="btn btn-primary">Send complaint</button></p>
+  </form>
+
+  <script th:src="@{/js/focus-errors.js}" defer></script>
+</main>
+</body>
+</html>

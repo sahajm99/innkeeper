@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout('Rooms', ~{::main})}">
+<body>
+<main class="shell measure" id="main">
+  <h1>What is free</h1>
+  <p class="lede" th:if="${search.hasDates()}">
+    <span th:text="${dates.format(search.checkIn)}">Fri 3 Oct 2026</span> to
+    <span th:text="${dates.format(search.checkOut)}">Mon 6 Oct 2026</span>,
+    <span th:text="${dates.nights(nights)}">3 nights</span>,
+    <span th:text="${dates.guests(search.guests)}">2 guests</span>.</p>
+  <p class="lede" th:unless="${search.hasDates()}">Rooms free tonight. Pick your nights to see
+    what a stay would cost.</p>
+
+  <div th:replace="~{fragments/search :: filters}"></div>
+
+  <th:block th:if="${results != null and !results.isEmpty() and !anyRooms}">
+    <p class="empty" th:if="${search.hasDates()}"
+       th:text="|Nothing free at any branch for ${dates.format(search.checkIn)} to ${dates.format(search.checkOut)}. Try shorter dates or another branch.|">
+      Nothing free at any branch for Fri 3 Oct 2026 to Mon 6 Oct 2026. Try shorter dates or
+      another branch.</p>
+    <p class="empty" th:unless="${search.hasDates()}">Nothing is free tonight. Try other
+      dates.</p>
+  </th:block>
+
+  <th:block th:if="${anyRooms}">
+    <section class="branch-group" th:each="group : ${results}">
+      <h2 th:text="${group.branchName}">Denton Square</h2>
+      <p class="ledger-meta" th:text="${group.city} + ', Texas'">Denton, Texas</p>
+
+      <p class="empty" th:if="${group.soldOut()}">Sold out for these dates.</p>
+
+      <div class="ledger" th:unless="${group.soldOut()}">
+        <div class="ledger-row" th:each="row : ${group.rooms}">
+          <div class="ledger-main">
+            <p class="ledger-title">
+              <a th:href="@{'/rooms/' + ${row.id} + '?' + ${carry}}"
+                 th:text="'Room ' + ${row.roomNumber} + ', ' + ${row.typeName}">Room 101,
+                Standard Queen</a></p>
+            <p class="ledger-meta">
+              <span th:text="${row.bedSetup}">One queen bed</span>, sleeps
+              <span th:text="${row.sleeps}">2</span></p>
+          </div>
+          <div class="ledger-figure">
+            <span class="amount" th:if="${row.stayTotal}"
+                  th:text="${dates.money(row.stayTotal)}">$267.00</span>
+            <span class="amount" th:unless="${row.stayTotal}"
+                  th:text="${dates.money(row.rate)}">$89.00</span>
+            <span class="ledger-meta" th:if="${row.stayTotal}"
+                  th:text="${dates.nights(nights)} + ' before tax'">3 nights before tax</span>
+            <span class="ledger-meta" th:unless="${row.stayTotal}">a night</span>
+          </div>
+          <div class="ledger-action">
+            <a class="btn btn-outline btn-small"
+               th:href="@{'/rooms/' + ${row.id} + '?' + ${carry}}">View room</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </th:block>
+
+  <script th:src="@{/js/focus-errors.js}" defer></script>
+</main>
+</body>
+</html>

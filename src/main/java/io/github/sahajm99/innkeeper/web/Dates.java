@@ -33,9 +33,13 @@ public class Dates {
     private static final DateTimeFormatter MONTH =
         DateTimeFormatter.ofPattern("MMM", Locale.ENGLISH);
 
-    /** "3 pm, Fri 3 Oct 2026": the cancellation deadline, which is a moment and not a day. */
+    /** "3:00 PM, Fri 3 Oct 2026": an instant written out in full. */
     private static final DateTimeFormatter MOMENT =
         DateTimeFormatter.ofPattern("h:mm a, EEE d MMM yyyy", Locale.ENGLISH);
+
+    /** "3 PM, Wed 1 Oct", lower-cased before it is printed. */
+    private static final DateTimeFormatter DEADLINE =
+        DateTimeFormatter.ofPattern("h a, EEE d MMM", Locale.ENGLISH);
 
     private final ZoneId zone;
 
@@ -75,6 +79,18 @@ public class Dates {
 
     public String moment(Instant instant) {
         return moment(instant, zone);
+    }
+
+    /**
+     * "3 pm, Wed 1 Oct": the cancellation deadline, which a guest reads as a time of day rather
+     * than as a timestamp. The minutes are dropped because the deadline is always on the hour, and
+     * the meridiem is lower case because that is how the sentence around it is written.
+     */
+    public String deadline(Instant instant, ZoneId at) {
+        return instant == null
+            ? ""
+            : DEADLINE.format(instant.atZone(at == null ? zone : at))
+                .replace("AM", "am").replace("PM", "pm");
     }
 
     /** "$1,234.50". Null is an empty string rather than "$0.00", which would be a claim. */

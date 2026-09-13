@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout('Invoice', ~{::main})}">
+<body>
+<main class="shell measure" id="main">
+  <div class="letterhead">
+    <h1 th:text="${booking.branchName}">Denton Square</h1>
+    <p>Innkeeper hotel group, Texas. This is a demonstration invoice for fictional data.</p>
+  </div>
+
+  <dl class="dl-ledger">
+    <div>
+      <dt>Confirmation</dt>
+      <dd th:text="${booking.code}">INN-4KQ7ZD</dd>
+    </div>
+    <div>
+      <dt>Guest</dt>
+      <dd><span th:text="${booking.guestName()}">Ada Example</span>,
+        <span th:text="${booking.guestEmail}">ada@example.com</span></dd>
+    </div>
+    <div>
+      <dt>Room</dt>
+      <dd th:text="'Room ' + ${booking.roomNumber} + ', ' + ${booking.roomTypeName}">Room 101,
+        Standard Queen</dd>
+    </div>
+    <div>
+      <dt>Nights</dt>
+      <dd><span th:text="${dates.format(booking.checkIn)}">Fri 3 Oct 2026</span> to
+        <span th:text="${dates.format(booking.checkOut)}">Mon 6 Oct 2026</span></dd>
+    </div>
+    <div th:if="${booking.invoice}">
+      <dt>Issued</dt>
+      <dd th:text="${dates.moment(booking.invoice.issuedAt, booking.zone)}">3:00 PM, Fri 3 Oct
+        2026</dd>
+    </div>
+  </dl>
+
+  <h2>Charges</h2>
+  <div class="scroll-x">
+    <table class="stacked">
+      <thead>
+      <tr>
+        <th scope="col">Line</th>
+        <th scope="col" class="amount">Quantity</th>
+        <th scope="col" class="amount">Each</th>
+        <th scope="col" class="amount">Amount</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="line : ${booking.lines}">
+        <td data-label="Line" th:text="${line.description}">3 nights x $89.00</td>
+        <td data-label="Quantity" class="amount" th:text="${line.quantity}">3</td>
+        <td data-label="Each" class="amount" th:text="${dates.money(line.unitAmount)}">$89.00</td>
+        <td data-label="Amount" class="amount" th:text="${dates.money(line.amount)}">$267.00</td>
+      </tr>
+      </tbody>
+      <tfoot th:if="${booking.invoice}">
+      <tr>
+        <td data-label="Total" colspan="3">Total</td>
+        <td class="amount" th:text="${dates.money(booking.invoice.total)}">$301.71</td>
+      </tr>
+      <tr th:each="payment : ${booking.payments}">
+        <td data-label="Paid" colspan="3"
+            th:text="'Paid by ' + ${#strings.toLowerCase(payment.method)}
+                     + ' on ' + ${dates.format(payment.paidAt)}">Paid by card on Fri 3 Oct
+          2026</td>
+        <td class="amount" th:text="'-' + ${dates.money(payment.amount)}">-$301.71</td>
+      </tr>
+      <tr>
+        <td data-label="Balance due" colspan="3">Balance due</td>
+        <td class="amount" th:text="${dates.money(booking.invoice.balance)}">$0.00</td>
+      </tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <p class="note" th:if="${booking.invoice}">
+    Invoice status: <span th:text="${#strings.toLowerCase(booking.invoice.status)}">open</span>.
+    Nothing is collected online in this demo.</p>
+
+  <p class="actions no-print">
+    <button type="button" class="btn btn-outline" data-print>Print</button>
+    <a class="btn btn-outline" th:href="@{'/bookings/' + ${booking.code}}">Back to the
+      booking</a>
+  </p>
+
+  <script th:src="@{/js/print.js}" defer></script>
+</main>
+</body>
+</html>

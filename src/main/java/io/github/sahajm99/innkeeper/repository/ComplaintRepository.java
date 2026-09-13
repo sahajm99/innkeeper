@@ -23,4 +23,11 @@ public interface ComplaintRepository extends JpaRepository<Complaint, Long> {
     long countByStatus(@Param("status") ComplaintStatus status, @Param("branchId") Long branchId);
 
     Optional<Complaint> findByTicketNumber(String ticketNumber);
+
+    /**
+     * One complaint with its branch loaded, for the thanks page, which reads the branch name after
+     * the transaction has closed and would otherwise meet a lazy proxy.
+     */
+    @Query("select c from Complaint c join fetch c.branch where c.ticketNumber = :ticket")
+    Optional<Complaint> findDetailedByTicketNumber(@Param("ticket") String ticket);
 }

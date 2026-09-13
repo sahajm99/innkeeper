@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<body>
+
+<!-- The one search form, shown on the front page and again above the rooms list. It is a GET to
+     /rooms, so a search is a link somebody can keep or share. -->
+<form th:fragment="search(heading, submit)" method="get" th:action="@{/rooms}"
+      th:object="${search}" class="search-panel">
+  <h2 class="panel-head" th:text="${heading}">Find a room</h2>
+  <div th:replace="~{fragments/forms :: summary('Check the dates before searching.')}"></div>
+
+  <div class="search-grid">
+    <p class="field" th:classappend="${#fields.hasErrors('checkIn')} ? 'field-invalid'">
+      <label for="checkIn">Check in</label>
+      <input type="date" id="checkIn" th:field="*{checkIn}" th:min="${today}"
+             th:max="${latestDate}">
+      <span th:replace="~{fragments/forms :: error('checkIn')}"></span>
+    </p>
+    <p class="field" th:classappend="${#fields.hasErrors('checkOut')} ? 'field-invalid'">
+      <label for="checkOut">Check out</label>
+      <input type="date" id="checkOut" th:field="*{checkOut}" th:min="${today}"
+             th:max="${latestDate}">
+      <span th:replace="~{fragments/forms :: error('checkOut')}"></span>
+    </p>
+    <p class="field" th:classappend="${#fields.hasErrors('guests')} ? 'field-invalid'">
+      <label for="guests">Guests</label>
+      <input type="number" id="guests" th:field="*{guests}" min="1" max="4" step="1">
+      <span th:replace="~{fragments/forms :: error('guests')}"></span>
+    </p>
+    <p class="field">
+      <label for="branchId">Hotel</label>
+      <select id="branchId" th:field="*{branchId}">
+        <option value="">Any of the three</option>
+        <option th:each="branch : ${branchList}" th:value="${branch.id}"
+                th:text="${branch.name}">Denton Square</option>
+      </select>
+    </p>
+  </div>
+  <p class="actions"><button type="submit" class="btn btn-primary" th:text="${submit}">Search
+    rooms</button></p>
+</form>
+
+<!-- The same form with the two extra filters the rooms page offers once the visitor is looking. -->
+<form th:fragment="filters" method="get" th:action="@{/rooms}" th:object="${search}"
+      class="search-panel">
+  <h2 class="panel-head">Change the search</h2>
+  <div th:replace="~{fragments/forms :: summary('Check the dates before searching.')}"></div>
+
+  <div class="search-grid">
+    <p class="field" th:classappend="${#fields.hasErrors('checkIn')} ? 'field-invalid'">
+      <label for="f-checkIn">Check in</label>
+      <input type="date" id="f-checkIn" th:field="*{checkIn}" th:min="${today}"
+             th:max="${latestDate}">
+      <span th:replace="~{fragments/forms :: error('checkIn')}"></span>
+    </p>
+    <p class="field" th:classappend="${#fields.hasErrors('checkOut')} ? 'field-invalid'">
+      <label for="f-checkOut">Check out</label>
+      <input type="date" id="f-checkOut" th:field="*{checkOut}" th:min="${today}"
+             th:max="${latestDate}">
+      <span th:replace="~{fragments/forms :: error('checkOut')}"></span>
+    </p>
+    <p class="field" th:classappend="${#fields.hasErrors('guests')} ? 'field-invalid'">
+      <label for="f-guests">Guests</label>
+      <input type="number" id="f-guests" th:field="*{guests}" min="1" max="4" step="1">
+      <span th:replace="~{fragments/forms :: error('guests')}"></span>
+    </p>
+    <p class="field">
+      <label for="f-branchId">Hotel</label>
+      <select id="f-branchId" th:field="*{branchId}">
+        <option value="">Any of the three</option>
+        <option th:each="branch : ${branchList}" th:value="${branch.id}"
+                th:text="${branch.name}">Denton Square</option>
+      </select>
+    </p>
+    <p class="field">
+      <label for="f-type">Room</label>
+      <select id="f-type" th:field="*{type}">
+        <option value="">Any kind</option>
+        <option th:each="roomType : ${roomTypes}" th:value="${roomType.code}"
+                th:text="${roomType.name}">Standard Queen</option>
+      </select>
+    </p>
+    <p class="field" th:classappend="${#fields.hasErrors('maxRate')} ? 'field-invalid'">
+      <label for="f-maxRate">Up to, a night</label>
+      <input type="number" id="f-maxRate" th:field="*{maxRate}" min="0" step="1">
+      <span th:replace="~{fragments/forms :: error('maxRate')}"></span>
+    </p>
+  </div>
+  <p class="actions"><button type="submit" class="btn btn-primary">Search rooms</button></p>
+</form>
+
+</body>
+</html>

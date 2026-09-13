@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout('Confirm your booking', ~{::main})}">
+<body>
+<main class="shell measure" id="main">
+  <h1>Confirm your booking</h1>
+
+  <div class="banner" th:if="${taken}">
+    <h2 th:text="${taken}">Room 204 was just taken for those dates</h2>
+    <p>Nothing was charged and nothing was saved. Somebody booked it while this page was open;
+      the database refused the second booking, which is the whole point of the demo.</p>
+    <p><a th:href="@{'/rooms?checkIn=' + ${booking.checkIn} + '&checkOut=' + ${booking.checkOut}}">
+      See what else is free for those dates</a></p>
+  </div>
+
+  <div class="layout-split">
+    <section class="summary">
+      <h2>Your stay</h2>
+      <p class="note"><span th:text="${branch.name}">Denton Square</span>, room
+        <span th:text="${room.roomNumber}">101</span>,
+        <span th:text="${type.name}">Standard Queen</span></p>
+      <dl>
+        <div>
+          <dt>Check in</dt>
+          <dd th:text="${dates.format(booking.checkIn)}">Fri 3 Oct 2026</dd>
+        </div>
+        <div>
+          <dt>Check out</dt>
+          <dd th:text="${dates.format(booking.checkOut)}">Mon 6 Oct 2026</dd>
+        </div>
+        <div>
+          <dt th:text="${dates.nights(quote.nights)} + ' at '
+                       + ${dates.money(quote.nightlyRate)}">3 nights at $89.00</dt>
+          <dd th:text="${dates.money(quote.roomSubtotal)}">$267.00</dd>
+        </div>
+        <div>
+          <dt>Occupancy tax</dt>
+          <dd th:text="${dates.money(quote.tax)}">$34.71</dd>
+        </div>
+        <div class="total">
+          <dt>Total</dt>
+          <dd th:text="${dates.money(quote.total)}">$301.71</dd>
+        </div>
+      </dl>
+      <p class="note" th:if="${quote.cancellationDeadline}"
+         th:text="|Free cancellation until ${dates.deadline(quote.cancellationDeadline, branch.zone())}. After that, one night (${dates.money(quote.nightlyRate)}).|">
+        Free cancellation until 3 pm, Wed 1 Oct. After that, one night ($89.00).</p>
+    </section>
+
+    <form method="post" th:action="@{/book}" th:object="${booking}">
+      <div th:replace="~{fragments/forms :: summary('Check these fields before booking.')}"></div>
+      <p class="note">Demo: do not enter real personal data. Everything is wiped nightly.</p>
+
+      <input type="hidden" th:field="*{roomId}">
+      <input type="hidden" th:field="*{checkIn}">
+      <input type="hidden" th:field="*{checkOut}">
+
+      <div class="field-row">
+        <p class="field" th:classappend="${#fields.hasErrors('firstName')} ? 'field-invalid'">
+          <label for="firstName">First name</label>
+          <input type="text" id="firstName" th:field="*{firstName}" autocomplete="given-name"
+                 required>
+          <span th:replace="~{fragments/forms :: error('firstName')}"></span>
+        </p>
+        <p class="field" th:classappend="${#fields.hasErrors('lastName')} ? 'field-invalid'">
+          <label for="lastName">Last name</label>
+          <input type="text" id="lastName" th:field="*{lastName}" autocomplete="family-name"
+                 required>
+          <span th:replace="~{fragments/forms :: error('lastName')}"></span>
+        </p>
+      </div>
+
+      <p class="field" th:classappend="${#fields.hasErrors('email')} ? 'field-invalid'">
+        <label for="email">Email</label>
+        <input type="email" id="email" th:field="*{email}" autocomplete="email" required>
+        <span class="field-hint">You need this and the confirmation code to open the booking
+          again.</span>
+        <span th:replace="~{fragments/forms :: error('email')}"></span>
+      </p>
+
+      <p class="field" th:classappend="${#fields.hasErrors('phone')} ? 'field-invalid'">
+        <label for="phone">Phone, if you like</label>
+        <input type="tel" id="phone" th:field="*{phone}" autocomplete="tel">
+        <span th:replace="~{fragments/forms :: error('phone')}"></span>
+      </p>
+
+      <div class="field-row">
+        <p class="field" th:classappend="${#fields.hasErrors('adults')} ? 'field-invalid'">
+          <label for="adults">Adults</label>
+          <input type="number" id="adults" th:field="*{adults}" min="1" th:max="${type.maxOccupancy}"
+                 step="1" required>
+          <span th:replace="~{fragments/forms :: error('adults')}"></span>
+        </p>
+        <p class="field" th:classappend="${#fields.hasErrors('children')} ? 'field-invalid'">
+          <label for="children">Children</label>
+          <input type="number" id="children" th:field="*{children}" min="0"
+                 th:max="${type.maxOccupancy - 1}" step="1">
+          <span class="field-hint" th:text="|This room sleeps ${type.maxOccupancy}.|">This room
+            sleeps 2.</span>
+          <span th:replace="~{fragments/forms :: error('children')}"></span>
+        </p>
+      </div>
+
+      <p class="field" th:classappend="${#fields.hasErrors('specialRequests')} ? 'field-invalid'">
+        <label for="specialRequests">Anything we should know</label>
+        <textarea id="specialRequests" th:field="*{specialRequests}"></textarea>
+        <span th:replace="~{fragments/forms :: error('specialRequests')}"></span>
+      </p>
+
+      <p class="honeypot" aria-hidden="true">
+        <label for="website">Leave this empty</label>
+        <input type="text" id="website" th:field="*{website}" tabindex="-1" autocomplete="off">
+      </p>
+
+      <p class="actions">
+        <button type="submit" class="btn btn-primary"
+                th:text="|Confirm booking, ${dates.money(quote.total)}|">Confirm booking,
+          $301.71</button>
+        <a class="btn btn-outline" th:href="@{'/rooms/' + ${room.id}}">Back to the room</a>
+      </p>
+    </form>
+  </div>
+
+  <script th:src="@{/js/focus-errors.js}" defer></script>
+</main>
+</body>
+</html>

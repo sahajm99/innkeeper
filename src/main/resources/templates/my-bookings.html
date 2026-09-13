@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout('Find my booking', ~{::main})}">
+<body>
+<main class="shell measure" id="main">
+  <h1>Find my booking</h1>
+
+  <th:block th:if="${accountBookings}">
+    <p class="lede">Stays booked with <span th:text="${accountEmail}">guest@example.com</span>.</p>
+    <p class="empty" th:if="${accountBookings.isEmpty()}">Nothing booked with this address yet.</p>
+    <div class="ledger" th:unless="${accountBookings.isEmpty()}">
+      <div class="ledger-row" th:each="stay : ${accountBookings}">
+        <div class="ledger-main">
+          <p class="ledger-title">
+            <a th:href="@{'/bookings/' + ${stay.code}}" th:text="${stay.code}">INN-4KQ7ZD</a></p>
+          <p class="ledger-meta">
+            <span th:text="${stay.branchName}">Denton Square</span>, room
+            <span th:text="${stay.roomNumber}">101</span>,
+            <span th:text="${dates.format(stay.checkIn)}">Fri 3 Oct 2026</span> to
+            <span th:text="${dates.format(stay.checkOut)}">Mon 6 Oct 2026</span></p>
+        </div>
+        <div class="ledger-figure">
+          <span class="amount" th:if="${stay.invoice}"
+                th:text="${dates.money(stay.invoice.total)}">$301.71</span>
+        </div>
+        <div class="ledger-action">
+          <span th:replace="~{fragments/chips :: status(${stay.status})}"></span>
+        </div>
+      </div>
+    </div>
+    <h2>Open another booking</h2>
+  </th:block>
+
+  <p class="lede" th:unless="${accountBookings}">Enter the confirmation code from your email and
+    the address you booked with. Both are needed, and neither one alone tells us anything.</p>
+
+  <form method="post" th:action="@{/my-bookings}" th:object="${lookup}" class="search-panel">
+    <div th:replace="~{fragments/forms :: summary('Check these fields.')}"></div>
+    <p class="banner" th:if="${noMatch}" th:text="${noMatch}">We couldn't find a booking with that
+      code and email.</p>
+
+    <p class="field" th:classappend="${#fields.hasErrors('code')} ? 'field-invalid'">
+      <label for="code">Confirmation code</label>
+      <input type="text" id="code" th:field="*{code}" placeholder="INN-4KQ7ZD"
+             autocapitalize="characters" spellcheck="false" required>
+      <span th:replace="~{fragments/forms :: error('code')}"></span>
+    </p>
+    <p class="field" th:classappend="${#fields.hasErrors('email')} ? 'field-invalid'">
+      <label for="lookup-email">Email</label>
+      <input type="email" id="lookup-email" th:field="*{email}" autocomplete="email" required>
+      <span th:replace="~{fragments/forms :: error('email')}"></span>
+    </p>
+    <p class="actions"><button type="submit" class="btn btn-primary">Open my booking</button></p>
+  </form>
+
+  <p class="note">Sessions are held in memory and this demo restarts often, so a booking you
+    opened earlier may ask for the email again.</p>
+
+  <script th:src="@{/js/focus-errors.js}" defer></script>
+</main>
+</body>
+</html>
