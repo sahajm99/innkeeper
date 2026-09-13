@@ -38,3 +38,12 @@ One entry per milestone with how it was verified.
 - Docker: `docker build` from a clean `git archive HEAD` succeeds (the AppCDS training run
   included); the container answers `/actuator/health` UP three seconds after start, serves
   `/about`, `/login`, `/api/docs` and `/api/branches`, uses 274 MB RSS, and logs no ERROR lines.
+
+## (d) Pages and design (2026-09-13)
+
+- Tasks 9, 11 and 12: design system (tokens, self-hosted Fraunces and Source Sans 3, theme
+  toggle, print styles), all public pages and all staff pages. 346 tests green.
+- Verified locally on the `demo` profile in the headless browser: a booking made through the
+  form (`INN-RBEGQT`) with its confirmation and invoice, staff login, the front desk, a check-in,
+  `/about` and `/api/docs`, with no console errors. The 1280/400 light/dark screenshot set
+  (Task 13) is still pending.
