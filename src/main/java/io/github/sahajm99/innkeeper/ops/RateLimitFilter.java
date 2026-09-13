@@ -35,7 +35,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
     /** The write paths. Reading, signing in and the reset endpoint are not limited. */
     private static final List<String> LIMITED = List.of(
-        "/book", "/complaints", "/my-bookings",
+        "/book", "/complaints/**", "/my-bookings",
         "/api/bookings", "/api/bookings/lookup", "/api/bookings/*/cancel", "/api/demo/race");
 
     private static final String TITLE = "Too many requests";

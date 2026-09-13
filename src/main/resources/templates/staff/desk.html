@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layout :: layout('Front desk', ~{::main})}">
+<body>
+<main class="shell wide" id="main">
+  <div class="page-head">
+    <h1>Front desk</h1>
+    <p class="page-meta">
+      <span th:text="${scope}">Denton Square</span>,
+      <span th:text="${dates.format(dashboard.today)}">Fri 3 Oct 2026</span></p>
+  </div>
+
+  <div th:replace="~{fragments/staff :: switcher('/staff', ${branchId})}">Branch switcher.</div>
+
+  <section>
+    <h2 th:text="'Departures today (' + ${#lists.size(departures)} + ')'">Departures today (2)</h2>
+    <p class="empty" th:if="${#lists.isEmpty(departures)}">No departures today.</p>
+    <div class="ledger" th:unless="${#lists.isEmpty(departures)}">
+      <div class="ledger-row" th:each="row : ${departures}">
+        <div class="ledger-main">
+          <p class="ledger-title">
+            <a th:href="@{'/staff/bookings/' + ${row.code}}"
+               th:text="${row.guestName}">Kai Specimen</a></p>
+          <p class="ledger-meta">
+            Room <span th:text="${row.roomNumber}">102</span>,
+            <span th:text="${row.branchName}">Denton Square</span>,
+            <span th:text="${dates.nights(row.nights)}">1 night</span>,
+            <span th:text="${mask.email(row.guestEmail)}">k***@example.com</span></p>
+          <p class="ledger-meta overdue" th:if="${row.overdue}"
+             th:text="'Overstaying since ' + ${dates.format(row.checkOut)}">Overstaying since Thu 2
+            Oct 2026</p>
+        </div>
+        <div class="ledger-figure">
+          <span class="amount" th:text="${dates.money(row.balance)}">$267.00</span>
+          <span class="ledger-meta">still owed</span>
+        </div>
+        <div class="ledger-action">
+          <form method="post" th:action="@{'/staff/bookings/' + ${row.code} + '/check-out'}">
+            <button type="submit" class="btn btn-outline btn-small">Check out</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2 th:text="'Arrivals today (' + ${#lists.size(arrivals)} + ')'">Arrivals today (1)</h2>
+    <p class="empty" th:if="${#lists.isEmpty(arrivals)}">No arrivals today.</p>
+    <div class="ledger" th:unless="${#lists.isEmpty(arrivals)}">
+      <div class="ledger-row" th:each="row : ${arrivals}">
+        <div class="ledger-main">
+          <p class="ledger-title">
+            <a th:href="@{'/staff/bookings/' + ${row.code}}"
+               th:text="${row.guestName}">Otto Stub</a></p>
+          <p class="ledger-meta">
+            Room <span th:text="${row.roomNumber}">103</span>,
+            <span th:text="${row.branchName}">Denton Square</span>,
+            <span th:text="${dates.nights(row.nights)}">2 nights</span>,
+            <span th:text="${mask.email(row.guestEmail)}">o***@example.com</span></p>
+        </div>
+        <div class="ledger-figure">
+          <span class="amount" th:text="${dates.money(row.balance)}">$192.24</span>
+          <span class="ledger-meta">on the invoice</span>
+        </div>
+        <div class="ledger-action">
+          <form method="post" th:action="@{'/staff/bookings/' + ${row.code} + '/check-in'}">
+            <button type="submit" class="btn btn-outline btn-small">Check in</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    <p class="note">Checking in from here takes no parking space. Open the stay to give one out.</p>
+  </section>
+
+  <div class="panels">
+    <section class="panel">
+      <h2 class="panel-head">Rooms occupied</h2>
+      <dl class="dl-ledger">
+        <div th:each="branch : ${dashboard.occupancy}">
+          <dt th:text="${branch.branch.name}">Denton Square</dt>
+          <dd th:text="${branch.occupied} + ' of ' + ${branch.inService} + ' in service, '
+                       + ${branch.percent} + '%'">6 of 12 in service, 50%</dd>
+        </div>
+      </dl>
+    </section>
+
+    <section class="panel">
+      <h2 class="panel-head">Maintenance nobody has started</h2>
+      <p class="empty" th:if="${dashboard.openMaintenance.isEmpty()}">No open maintenance.</p>
+      <dl class="dl-ledger" th:unless="${dashboard.openMaintenance.isEmpty()}">
+        <div th:each="job : ${dashboard.openMaintenance}">
+          <dt><span th:replace="~{fragments/chips :: priority(${job.key})}">Urgent</span></dt>
+          <dd th:text="${job.value == 1} ? '1 job' : |${job.value} jobs|">1 job</dd>
+        </div>
+      </dl>
+      <p class="actions">
+        <a class="btn btn-outline btn-small" th:href="@{/staff/maintenance}">Open the board</a></p>
+    </section>
+
+    <section class="panel">
+      <h2 class="panel-head">Low stock</h2>
+      <p class="empty" th:if="${#lists.isEmpty(dashboard.lowStock)}">Stock is above reorder
+        levels.</p>
+      <dl class="dl-ledger" th:unless="${#lists.isEmpty(dashboard.lowStock)}">
+        <div th:each="item : ${dashboard.lowStock}">
+          <dt th:text="${item.name}">Toilet paper</dt>
+          <dd th:text="${item.quantity} + ' ' + ${item.unit} + ' left at ' + ${item.branch.name}
+                       + ', reorder at ' + ${item.reorderLevel}">18 roll left at Denton Square,
+            reorder at 24</dd>
+        </div>
+      </dl>
+      <p class="actions">
+        <a class="btn btn-outline btn-small" th:href="@{/staff/inventory}">Open the cupboard</a></p>
+    </section>
+
+    <section class="panel">
+      <h2 class="panel-head">Complaints nobody has started</h2>
+      <p class="empty" th:if="${dashboard.openComplaints == 0}">No open complaints.</p>
+      <p th:unless="${dashboard.openComplaints == 0}"
+         th:text="${dashboard.openComplaints == 1} ? 'One complaint is waiting for somebody.'
+                  : |${dashboard.openComplaints} complaints are waiting for somebody.|">
+        One complaint is waiting for somebody.</p>
+      <p class="actions">
+        <a class="btn btn-outline btn-small" th:href="@{/staff/complaints}">Open the queue</a></p>
+    </section>
+  </div>
+
+  <section class="panel reset-panel" sec:authorize="hasRole('MANAGER')">
+    <h2 class="panel-head">Demo data</h2>
+    <p>Resetting deletes every booking, job, complaint and shelf and seeds them again. Nothing in
+      this database is real.</p>
+    <form method="post" th:action="@{/staff/reset}"
+          data-confirm="Reset the demo data? Every booking, job and complaint goes back to the way it was seeded.">
+      <button type="submit" class="btn btn-danger">Reset demo data</button>
+    </form>
+  </section>
+
+  <script th:src="@{/js/confirm.js}" defer></script>
+</main>
+</body>
+</html>

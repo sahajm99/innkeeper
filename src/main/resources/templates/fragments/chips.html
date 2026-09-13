@@ -10,5 +10,18 @@
       th:classappend="${'chip-' + #strings.replace(#strings.toLowerCase(status), '_', '-')}"
       th:text="${labels.get(status.toString())}">Confirmed</span>
 
+<!-- How urgent a repair is. Urgent is the only one that shouts, so the other two stay quiet. -->
+<span th:fragment="priority(priority)" class="chip"
+      th:with="labels=${ {'URGENT':'Urgent','NORMAL':'Normal','LOW':'Low'} }"
+      th:classappend="${'chip-' + #strings.toLowerCase(priority)}"
+      th:text="${labels.get(priority.toString())}">Urgent</span>
+
+<!-- Where a job or a complaint has got to. Open means nobody has picked it up yet. -->
+<span th:fragment="progress(status)" class="chip"
+      th:with="labels=${ {'OPEN':'Open','IN_PROGRESS':'In progress','DONE':'Done',
+                          'RESOLVED':'Resolved'} }"
+      th:classappend="${'chip-' + #strings.replace(#strings.toLowerCase(status), '_', '-')}"
+      th:text="${labels.get(status.toString())}">Open</span>
+
 </body>
 </html>

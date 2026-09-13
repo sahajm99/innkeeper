@@ -224,7 +224,12 @@ hr {
 
 main {
   display: block;
-  padding: var(--space-7) 0 var(--space-8);
+}
+
+/* Every page's main is also a shell, and .shell sets the padding shorthand - which zeroes the
+   vertical padding unless this rule is the more specific of the two. */
+main.shell {
+  padding-block: var(--space-7) var(--space-8);
 }
 
 .lede {
@@ -1270,4 +1275,329 @@ tfoot tr:first-child td {
 
 .code-hero {
   margin-top: var(--space-6);
+}
+
+/* --- staff pages: the desk, the board, the cupboard and the people ------------------------- */
+
+.page-meta {
+  margin: 0;
+  color: var(--brass-text);
+  font-size: var(--text-xs);
+}
+
+.switcher {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-3) var(--space-4);
+  margin: 0 0 var(--space-6);
+  padding: var(--space-4) var(--space-5);
+  background: var(--mist);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.switcher .field {
+  margin: 0;
+  flex: 0 1 16rem;
+}
+
+.ledger-action {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.overdue {
+  color: var(--signal);
+}
+
+td.owed {
+  color: var(--signal);
+}
+
+/* the state of the house, under the two ledgers the shift reads first */
+
+.panels {
+  display: grid;
+  gap: var(--space-5);
+  grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+  margin: var(--space-7) 0 0;
+}
+
+.panel .empty {
+  border: 0;
+  padding: 0;
+}
+
+.panel .dl-ledger {
+  margin-bottom: 0;
+}
+
+.panel .dl-ledger div:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.panel .dl-ledger dt {
+  flex: 0 0 7rem;
+}
+
+.reset-panel {
+  margin-top: var(--space-7);
+  border-color: var(--signal);
+}
+
+/* the maintenance board: three lanes on a desk, one list in a corridor */
+
+.board {
+  display: grid;
+  gap: var(--space-6);
+  margin: 0 0 var(--space-7);
+}
+
+@media (min-width: 45rem) {
+  .board {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: start;
+  }
+}
+
+.lane h2 {
+  margin-top: 0;
+  font-size: var(--text-md);
+  padding-bottom: var(--space-2);
+  border-bottom: 2px solid var(--brass);
+}
+
+.lane .note {
+  margin-top: calc(var(--space-3) * -1);
+  margin-bottom: var(--space-4);
+}
+
+.job {
+  background: var(--mist);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: var(--space-4);
+  margin: 0 0 var(--space-4);
+}
+
+.job-done {
+  background: none;
+}
+
+.job-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-3);
+}
+
+.job-head h3 {
+  margin: 0;
+  font-size: var(--text-base);
+  line-height: 1.3;
+  flex: 1 1 9rem;
+}
+
+.job-where {
+  margin: var(--space-2) 0 0;
+}
+
+.job-meta {
+  margin: var(--space-1) 0 0;
+  color: var(--brass-text);
+  font-size: var(--text-xs);
+}
+
+.job-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.job-team {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 1 1 100%;
+}
+
+.job-team .field-label {
+  margin: 0;
+}
+
+.job-team select {
+  flex: 1 1 7rem;
+  width: auto;
+}
+
+/* a form that lives on one row of a table or a ledger */
+
+.inline-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.inline-form .field-label {
+  margin: 0;
+}
+
+.inline-form input[type="number"] {
+  width: 4.5rem;
+}
+
+.inline-form input[type="text"] {
+  flex: 1 1 11rem;
+  width: auto;
+  min-width: 8rem;
+}
+
+.complaint-actions {
+  flex: 1 1 20rem;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-3);
+}
+
+/* paying: two ways, one of them always chosen */
+
+.radio-set {
+  border: 0;
+  padding: 0;
+  margin: 0 0 var(--space-4);
+}
+
+.radio-set legend {
+  padding: 0;
+  margin-bottom: var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--brass-text);
+}
+
+.radio-set label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-right: var(--space-5);
+}
+
+.check {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-2);
+}
+
+.check input {
+  margin-top: 0.2rem;
+}
+
+/* the shelf that has run out, and the colleague who has left */
+
+tr.low td {
+  background: var(--mist);
+}
+
+tr.low td:first-child {
+  border-left: 3px solid var(--signal);
+  padding-left: var(--space-3);
+}
+
+tr.gone td {
+  color: var(--brass-text);
+}
+
+.add-panel {
+  margin-top: var(--space-7);
+  padding-top: var(--space-5);
+  border-top: 2px solid var(--brass);
+}
+
+.chip-normal {
+  color: var(--ink);
+}
+
+.chip-low {
+  color: var(--brass-text);
+}
+
+.chip-open {
+  color: var(--signal);
+}
+
+.chip-in-progress {
+  color: var(--pine);
+}
+
+.chip-done,
+.chip-resolved {
+  color: var(--ink);
+}
+
+@media (max-width: 640px) {
+  table.stacked tr.low {
+    background: var(--mist);
+    border-left: 3px solid var(--signal);
+    padding-left: var(--space-3);
+  }
+
+  table.stacked tr.low td {
+    background: none;
+  }
+
+  table.stacked tr.low td:first-child {
+    border-left: 0;
+    padding-left: 0;
+  }
+}
+
+.chip-paid {
+  color: #F7F3EC;
+  background: var(--pine);
+  border-color: var(--pine);
+}
+
+:root[data-theme="dark"] .chip-paid {
+  color: #17140F;
+}
+
+.chip-void {
+  color: var(--brass-text);
+}
+
+/* A solid chip is cream on pine in light and charcoal on pine in dark. The explicit toggle is
+   handled above; this is the same swap for a visitor who never touched it. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .chip-checked-in,
+  :root:not([data-theme="light"]) .chip-paid {
+    color: #17140F;
+  }
+}
+
+/* An amount column has no right padding so it can end a table flush; when something follows it,
+   the next column has to make the gap itself. */
+td.amount + td,
+th.amount + th {
+  padding-left: var(--space-4);
+}
+
+.complaint-text {
+  margin: 0 0 var(--space-2);
+  max-width: 62ch;
+}
+
+@media (max-width: 640px) {
+  table.stacked td.amount + td {
+    padding-left: 0;
+  }
 }

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: layout('Find a booking', ~{::main})}">
+<body>
+<main class="shell wide" id="main">
+  <h1>Find a booking</h1>
+  <p class="lede">A confirmation code, a guest name or the email a stay was booked with.</p>
+
+  <form class="search-panel" method="get" th:action="@{/staff/bookings}">
+    <div class="search-grid">
+      <p class="field">
+        <label for="q">Search</label>
+        <input type="search" id="q" name="q" th:value="${q}" placeholder="INN-4KQ7ZD, Otto, o***"
+               autocomplete="off" spellcheck="false">
+      </p>
+    </div>
+    <p class="actions">
+      <button type="submit" class="btn btn-primary">Search bookings</button>
+    </p>
+  </form>
+
+  <p class="empty" th:if="${searched and #lists.isEmpty(results)}">No bookings match.</p>
+  <p class="empty" th:unless="${searched}">Nothing searched for yet. Type a code, a name or an
+    email address above.</p>
+
+  <div class="ledger" th:if="${!#lists.isEmpty(results)}">
+    <div class="ledger-row" th:each="booking : ${results}">
+      <div class="ledger-main">
+        <p class="ledger-title">
+          <a th:href="@{'/staff/bookings/' + ${booking.code}}"
+             th:text="${booking.guestName()}">Otto Stub</a></p>
+        <p class="ledger-meta">
+          <span th:text="${booking.code}">INN-4KQ7ZD</span>,
+          room <span th:text="${booking.roomNumber}">103</span>,
+          <span th:text="${booking.branchName}">Denton Square</span>,
+          <span th:text="${mask.email(booking.guestEmail)}">o***@example.com</span></p>
+        <p class="ledger-meta">
+          <span th:text="${dates.format(booking.checkIn)}">Fri 3 Oct 2026</span> to
+          <span th:text="${dates.format(booking.checkOut)}">Sun 5 Oct 2026</span>,
+          <span th:text="${dates.nights(booking.nights)}">2 nights</span></p>
+      </div>
+      <div class="ledger-figure">
+        <span class="amount" th:if="${booking.invoice}"
+              th:text="${dates.money(booking.invoice.balance)}">$192.24</span>
+        <span class="ledger-meta" th:if="${booking.invoice}">still owed</span>
+      </div>
+      <div class="ledger-action">
+        <span th:replace="~{fragments/chips :: status(${booking.status})}">Confirmed</span>
+        <a class="btn btn-outline btn-small"
+           th:href="@{'/staff/bookings/' + ${booking.code}}">Open</a>
+      </div>
+    </div>
+  </div>
+</main>
+</body>
+</html>

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<body>
+
+<!-- Which branch a staff page is looking at. A GET form rather than a row of links, so the
+     choice is one control a keyboard reaches once, and so the page still switches without
+     JavaScript. Call as ~{fragments/staff :: switcher('/staff', ${branchId})}. -->
+<form th:fragment="switcher(action, branchId)" class="switcher" method="get"
+      th:action="@{${action}}">
+  <p class="field">
+    <label for="branch-switch">Branch</label>
+    <select id="branch-switch" name="branchId">
+      <option value="" th:selected="${branchId == null}">All branches</option>
+      <option th:each="branch : ${branchList}" th:value="${branch.id}"
+              th:selected="${branchId != null and branchId == branch.id}"
+              th:text="${branch.name}">Denton Square</option>
+    </select>
+  </p>
+  <button type="submit" class="btn btn-outline btn-small">Show</button>
+</form>
+
+</body>
+</html>

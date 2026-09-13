@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: layout('Booking', ~{::main})}">
+<body>
+<main class="shell wide" id="main">
+  <div class="page-head">
+    <h1 th:text="'Booking ' + ${booking.code}">Booking INN-4KQ7ZD</h1>
+    <span th:replace="~{fragments/chips :: status(${booking.status})}">Confirmed</span>
+  </div>
+
+  <div class="layout-split">
+    <div>
+      <h2>The stay</h2>
+      <dl class="dl-ledger">
+        <div>
+          <dt>Guest</dt>
+          <dd th:text="${booking.guestName()}">Otto Stub</dd>
+        </div>
+        <div>
+          <dt>Email</dt>
+          <dd th:text="${mask.email(booking.guestEmail)}">o***@example.com</dd>
+        </div>
+        <div>
+          <dt>Phone</dt>
+          <dd th:text="${#strings.isEmpty(booking.guestPhone)} ? 'None on file'
+                       : ${mask.phone(booking.guestPhone)}">***</dd>
+        </div>
+        <div>
+          <dt>Hotel</dt>
+          <dd th:text="${booking.branchName}">Denton Square</dd>
+        </div>
+        <div>
+          <dt>Room</dt>
+          <dd th:text="'Room ' + ${booking.roomNumber} + ', ' + ${booking.roomTypeName}">Room 103,
+            Standard Queen</dd>
+        </div>
+        <div>
+          <dt>Nights</dt>
+          <dd><span th:text="${dates.format(booking.checkIn)}">Fri 3 Oct 2026</span> to
+            <span th:text="${dates.format(booking.checkOut)}">Sun 5 Oct 2026</span>,
+            <span th:text="${dates.nights(booking.nights)}">2 nights</span> at
+            <span th:text="${dates.money(booking.nightlyRate)}">$89.00</span></dd>
+        </div>
+        <div>
+          <dt>Party</dt>
+          <dd th:text="${dates.guests(booking.adults + booking.children)}">2 guests</dd>
+        </div>
+        <div th:if="${booking.specialRequests}">
+          <dt>Asked for</dt>
+          <dd th:text="${booking.specialRequests}">Late arrival, after 9 pm</dd>
+        </div>
+      </dl>
+      <p class="actions">
+        <a class="btn btn-outline btn-small"
+           th:href="@{/staff/maintenance(roomId=${booking.roomId},branchId=${booking.branchId})}">Report
+          maintenance issue</a>
+        <a class="btn btn-outline btn-small"
+           th:href="@{'/bookings/' + ${booking.code} + '/invoice'}">View invoice</a>
+      </p>
+    </div>
+
+    <div>
+      <h2>What happens next</h2>
+
+      <section class="panel" th:if="${booking.status.name() == 'CONFIRMED'}">
+        <h3 class="panel-head">Check in</h3>
+        <form method="post" th:action="@{'/staff/bookings/' + ${booking.code} + '/check-in'}">
+          <p class="field">
+            <label for="parkingSpaceId">Parking</label>
+            <select id="parkingSpaceId" name="parkingSpaceId">
+              <option value="">No parking</option>
+              <option th:each="space : ${spaces}" th:value="${space.id}"
+                      th:text="'Space ' + ${space.spaceNumber}">Space 3</option>
+            </select>
+            <span class="field-hint" th:if="${#lists.isEmpty(spaces)}">Every guest space is
+              taken.</span>
+          </p>
+          <p class="actions">
+            <button type="submit" class="btn btn-primary">Check in</button>
+          </p>
+        </form>
+      </section>
+
+      <section class="panel" th:if="${booking.status.name() == 'CHECKED_IN'}">
+        <h3 class="panel-head">Check out</h3>
+        <p>Checking out reprices the invoice for the nights actually slept, charges a late
+          departure and gives the parking space back.</p>
+        <form method="post" th:action="@{'/staff/bookings/' + ${booking.code} + '/check-out'}">
+          <p class="actions">
+            <button type="submit" class="btn btn-primary">Check out</button>
+          </p>
+        </form>
+      </section>
+
+      <section class="panel"
+               th:if="${booking.status.name() == 'CONFIRMED'
+                       or booking.status.name() == 'CHECKED_IN'}">
+        <h3 class="panel-head">Add a fine</h3>
+        <form method="post" th:action="@{'/staff/bookings/' + ${booking.code} + '/fines'}">
+          <div class="field-row">
+            <p class="field">
+              <label for="reason">What for</label>
+              <input type="text" id="reason" name="reason" maxlength="200" required>
+            </p>
+            <p class="field">
+              <label for="fine-amount">Amount</label>
+              <input type="number" id="fine-amount" name="amount" step="0.01" min="0.01"
+                     inputmode="decimal" required>
+            </p>
+          </div>
+          <p class="actions">
+            <button type="submit" class="btn btn-outline">Add fine</button>
+          </p>
+        </form>
+      </section>
+
+      <section class="panel" th:if="${booking.status.name() == 'CHECKED_OUT'
+                                     and booking.invoice != null
+                                     and booking.invoice.balance.signum() > 0}">
+        <h3 class="panel-head">Record a payment</h3>
+        <form method="post" th:action="@{'/staff/bookings/' + ${booking.code} + '/payments'}">
+          <div class="field-row">
+            <p class="field">
+              <label for="amount">Amount</label>
+              <input type="number" id="amount" name="amount" step="0.01" min="0.01"
+                     inputmode="decimal" th:value="${booking.invoice.balance}" required>
+              <span class="field-hint"
+                    th:text="'Balance ' + ${dates.money(booking.invoice.balance)}">Balance
+                $192.24</span>
+            </p>
+            <p class="field">
+              <label for="reference">Reference</label>
+              <input type="text" id="reference" name="reference" maxlength="60"
+                     autocomplete="off">
+            </p>
+          </div>
+          <fieldset class="radio-set">
+            <legend>How it was paid</legend>
+            <label for="method-card"><input type="radio" id="method-card" name="method"
+                                            value="CARD" checked> Card</label>
+            <label for="method-cash"><input type="radio" id="method-cash" name="method"
+                                            value="CASH"> Cash</label>
+          </fieldset>
+          <p class="actions">
+            <button type="submit" class="btn btn-primary">Record payment</button>
+          </p>
+        </form>
+      </section>
+
+      <p class="empty" th:if="${booking.status.name() == 'CANCELLED'}">This stay was cancelled on
+        <span th:text="${dates.format(booking.cancelledAt)}">Thu 2 Oct 2026</span>. Nothing can be
+        done to it now.</p>
+      <p class="empty" th:if="${booking.status.name() == 'CHECKED_OUT'
+                               and (booking.invoice == null
+                                    or booking.invoice.balance.signum() == 0)}">
+        The guest has left and the invoice is settled.</p>
+    </div>
+  </div>
+
+  <div class="page-head">
+    <h2>The invoice</h2>
+    <span class="chip" th:if="${booking.invoice}"
+          th:with="labels=${ {'OPEN':'Open','PAID':'Paid','VOID':'Void'} }"
+          th:classappend="${'chip-' + #strings.toLowerCase(booking.invoice.status)}"
+          th:text="${labels.get(booking.invoice.status.toString())}">Open</span>
+  </div>
+  <div class="scroll-x" th:if="${booking.invoice}">
+    <table class="stacked">
+      <thead>
+      <tr>
+        <th scope="col">Line</th>
+        <th scope="col" class="amount">Quantity</th>
+        <th scope="col" class="amount">Each</th>
+        <th scope="col" class="amount">Amount</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="line : ${booking.lines}">
+        <td data-label="Line" th:text="${line.description}">2 nights x $89.00</td>
+        <td data-label="Quantity" class="amount" th:text="${line.quantity}">2</td>
+        <td data-label="Each" class="amount" th:text="${dates.money(line.unitAmount)}">$89.00</td>
+        <td data-label="Amount" class="amount" th:text="${dates.money(line.amount)}">$178.00</td>
+      </tr>
+      </tbody>
+      <tfoot>
+      <tr>
+        <td data-label="Total" colspan="3">Total</td>
+        <td class="amount" th:text="${dates.money(booking.invoice.total)}">$192.24</td>
+      </tr>
+      <tr th:each="payment : ${booking.payments}">
+        <td data-label="Paid" colspan="3">
+          <span th:text="'Paid by ' + ${#strings.toLowerCase(payment.method)}">Paid by card</span>,
+          <span th:text="${dates.moment(payment.paidAt, booking.zone)}">3:00 PM, Fri 3 Oct
+            2026</span><span th:if="${payment.reference}"
+                             th:text="', reference ' + ${payment.reference}">, reference
+            4417</span></td>
+        <td class="amount" th:text="'-' + ${dates.money(payment.amount)}">-$192.24</td>
+      </tr>
+      <tr>
+        <td data-label="Balance" colspan="3">Balance</td>
+        <td class="amount" th:classappend="${booking.invoice.balance.signum() > 0} ? 'owed'"
+            th:text="${dates.money(booking.invoice.balance)}">$0.00</td>
+      </tr>
+      </tfoot>
+    </table>
+  </div>
+  <p class="empty" th:unless="${booking.invoice}">This stay has no invoice yet.</p>
+
+  <div class="columns">
+    <section>
+      <h2>Fines</h2>
+      <p class="empty" th:if="${#lists.isEmpty(booking.fines)}">No fines on this stay.</p>
+      <dl class="dl-ledger" th:unless="${#lists.isEmpty(booking.fines)}">
+        <div th:each="fine : ${booking.fines}">
+          <dt th:text="${fine.reason}">Smoking in room</dt>
+          <dd><span th:text="${dates.money(fine.amount)}">$40.00</span>,
+            <span th:text="${dates.format(fine.issuedAt)}">Fri 3 Oct 2026</span></dd>
+        </div>
+      </dl>
+    </section>
+
+    <section>
+      <h2>What has happened</h2>
+      <p class="empty" th:if="${#lists.isEmpty(booking.events)}">Nothing has happened to this stay
+        yet.</p>
+      <dl class="dl-ledger" th:unless="${#lists.isEmpty(booking.events)}">
+        <div th:each="moment : ${booking.events}">
+          <dt th:with="labels=${ {'CREATED':'Booked','CHECKED_IN':'Checked in',
+                                  'CHECKED_OUT':'Checked out','CANCELLED':'Cancelled',
+                                  'FINE_ADDED':'Fine added','PAYMENT_RECORDED':'Payment recorded',
+                                  'MODIFIED':'Changed'} }"
+              th:text="${labels.get(moment.type.toString()) ?: moment.type}">Checked in</dt>
+          <dd><span th:text="${dates.moment(moment.occurredAt, booking.zone)}">3:00 PM, Fri 3 Oct
+            2026</span>, by <span th:text="${moment.actor}">staff</span><span
+              th:if="${moment.note}" th:text="'. ' + ${moment.note}">. Parking space 3</span></dd>
+        </div>
+      </dl>
+    </section>
+  </div>
+</main>
+</body>
+</html>

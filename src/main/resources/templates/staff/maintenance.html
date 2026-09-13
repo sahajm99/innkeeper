@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: layout('Maintenance', ~{::main})}">
+<body>
+<main class="shell wide" id="main">
+  <div class="page-head">
+    <h1>Maintenance</h1>
+    <p class="page-meta" th:text="${scope}">Denton Square</p>
+  </div>
+
+  <div th:replace="~{fragments/staff :: switcher('/staff/maintenance', ${branchId})}">Branch
+    switcher.</div>
+
+  <div class="board">
+    <section class="lane">
+      <h2 th:text="'Open (' + ${#lists.size(open)} + ')'">Open (2)</h2>
+      <p class="empty" th:if="${#lists.isEmpty(open)}">Nothing is waiting.</p>
+      <article class="job" th:each="card : ${open}">
+        <div class="job-head">
+          <h3 th:text="${card.title}">Leaking bathroom faucet</h3>
+          <span th:replace="~{fragments/chips :: priority(${card.priority})}">Urgent</span>
+        </div>
+        <p class="job-where">
+          <span th:text="${card.roomLabel} ?: 'No room'">Room 106</span>,
+          <span th:text="${card.branchName}">Denton Square</span></p>
+        <p class="job-meta">
+          Raised <span th:text="${card.age}">2 days ago</span> by
+          <span th:text="${card.reportedBy}">Ben Sample</span>.
+          <span th:text="${card.teamName} != null ? |With ${card.teamName}.| : 'No team yet.'">No
+            team yet.</span></p>
+        <div class="job-actions">
+          <form method="post"
+                th:action="@{'/staff/maintenance/' + ${card.id} + '/start'}">
+            <input type="hidden" name="scope" th:value="${branchId}">
+            <button type="submit" class="btn btn-outline btn-small">Start</button>
+          </form>
+          <form method="post" th:action="@{'/staff/maintenance/' + ${card.id} + '/done'}">
+            <input type="hidden" name="scope" th:value="${branchId}">
+            <button type="submit" class="btn btn-outline btn-small">Done</button>
+          </form>
+          <form class="job-team" method="post"
+                th:action="@{'/staff/maintenance/' + ${card.id} + '/team'}">
+            <input type="hidden" name="scope" th:value="${branchId}">
+            <label th:for="'team-' + ${card.id}" class="field-label">Team</label>
+            <select th:id="'team-' + ${card.id}" name="teamId">
+              <option value="">Nobody yet</option>
+              <option th:each="team : ${teamsByBranch.get(card.branchId)}" th:value="${team.id}"
+                      th:selected="${team.name == card.teamName}"
+                      th:text="${team.name}">Engineering</option>
+            </select>
+            <button type="submit" class="btn btn-outline btn-small">Assign</button>
+          </form>
+        </div>
+      </article>
+    </section>
+
+    <section class="lane">
+      <h2 th:text="'In progress (' + ${#lists.size(inProgress)} + ')'">In progress (1)</h2>
+      <p class="empty" th:if="${#lists.isEmpty(inProgress)}">Nobody is working on anything.</p>
+      <article class="job" th:each="card : ${inProgress}">
+        <div class="job-head">
+          <h3 th:text="${card.title}">Television remote missing</h3>
+          <span th:replace="~{fragments/chips :: priority(${card.priority})}">Normal</span>
+        </div>
+        <p class="job-where">
+          <span th:text="${card.roomLabel} ?: 'No room'">Room 203</span>,
+          <span th:text="${card.branchName}">Denton Square</span></p>
+        <p class="job-meta">
+          Raised <span th:text="${card.age}">2 days ago</span> by
+          <span th:text="${card.reportedBy}">Ada Example</span>.
+          <span th:text="${card.teamName} != null ? |With ${card.teamName}.| : 'No team yet.'">With
+            Housekeeping.</span></p>
+        <div class="job-actions">
+          <form method="post" th:action="@{'/staff/maintenance/' + ${card.id} + '/done'}">
+            <input type="hidden" name="scope" th:value="${branchId}">
+            <button type="submit" class="btn btn-outline btn-small">Done</button>
+          </form>
+          <form class="job-team" method="post"
+                th:action="@{'/staff/maintenance/' + ${card.id} + '/team'}">
+            <input type="hidden" name="scope" th:value="${branchId}">
+            <label th:for="'team-' + ${card.id}" class="field-label">Team</label>
+            <select th:id="'team-' + ${card.id}" name="teamId">
+              <option value="">Nobody yet</option>
+              <option th:each="team : ${teamsByBranch.get(card.branchId)}" th:value="${team.id}"
+                      th:selected="${team.name == card.teamName}"
+                      th:text="${team.name}">Engineering</option>
+            </select>
+            <button type="submit" class="btn btn-outline btn-small">Assign</button>
+          </form>
+        </div>
+      </article>
+    </section>
+
+    <section class="lane">
+      <h2 th:text="'Done (' + ${#lists.size(done)} + ')'">Done (1)</h2>
+      <p class="note">The last seven days.</p>
+      <p class="empty" th:if="${#lists.isEmpty(done)}">Nothing finished this week.</p>
+      <article class="job job-done" th:each="card : ${done}">
+        <div class="job-head">
+          <h3 th:text="${card.title}">Replace hallway carpet</h3>
+          <span th:replace="~{fragments/chips :: priority(${card.priority})}">Normal</span>
+        </div>
+        <p class="job-where">
+          <span th:text="${card.roomLabel} ?: 'No room'">No room</span>,
+          <span th:text="${card.branchName}">Austin Lakeline</span></p>
+        <p class="job-meta">
+          Raised <span th:text="${card.age}">5 days ago</span> by
+          <span th:text="${card.reportedBy}">Finn Mockup</span>.
+          <span th:text="${card.teamName} != null ? |With ${card.teamName}.| : 'No team.'">With
+            Engineering.</span></p>
+      </article>
+    </section>
+  </div>
+
+  <div class="columns">
+    <section>
+      <h2>New request</h2>
+      <form method="post" th:action="@{/staff/maintenance}" th:object="${request}">
+        <input type="hidden" name="scope" th:value="${branchId}">
+        <div th:replace="~{fragments/forms :: summary('Check these fields before raising it.')}">
+          What was wrong.</div>
+
+        <div class="field-row">
+          <p class="field" th:classappend="${#fields.hasErrors('branchId')} ? 'field-invalid'">
+            <label for="request-branch">Hotel</label>
+            <select id="request-branch" th:field="*{branchId}" required>
+              <option value="">Choose one</option>
+              <option th:each="branch : ${branchList}" th:value="${branch.id}"
+                      th:text="${branch.name}">Denton Square</option>
+            </select>
+            <span th:replace="~{fragments/forms :: error('branchId')}">What was wrong.</span>
+          </p>
+          <p class="field" th:classappend="${#fields.hasErrors('roomId')} ? 'field-invalid'">
+            <label for="request-room">Room</label>
+            <select id="request-room" th:field="*{roomId}">
+              <option value="">No room</option>
+              <option th:each="room : ${roomOptions}" th:value="${room.id}"
+                      th:text="${room.label}">Room 106</option>
+            </select>
+            <span th:replace="~{fragments/forms :: error('roomId')}">What was wrong.</span>
+          </p>
+        </div>
+
+        <p class="field" th:classappend="${#fields.hasErrors('title')} ? 'field-invalid'">
+          <label for="request-title">What is wrong</label>
+          <input type="text" id="request-title" th:field="*{title}" maxlength="120" required>
+          <span th:replace="~{fragments/forms :: error('title')}">What was wrong.</span>
+        </p>
+
+        <p class="field" th:classappend="${#fields.hasErrors('description')} ? 'field-invalid'">
+          <label for="request-description">What needs doing</label>
+          <textarea id="request-description" th:field="*{description}" required></textarea>
+          <span th:replace="~{fragments/forms :: error('description')}">What was wrong.</span>
+        </p>
+
+        <p class="field" th:classappend="${#fields.hasErrors('priority')} ? 'field-invalid'">
+          <label for="request-priority">Priority</label>
+          <select id="request-priority" th:field="*{priority}" required>
+            <option th:each="level : ${priorities}" th:value="${level}"
+                    th:text="${#strings.capitalize(#strings.toLowerCase(level))}">Normal</option>
+          </select>
+          <span th:replace="~{fragments/forms :: error('priority')}">What was wrong.</span>
+        </p>
+
+        <p class="check">
+          <input type="checkbox" id="request-out" th:field="*{outOfService}">
+          <label for="request-out">Take the room out of service until done</label>
+        </p>
+        <p class="note">A room with nights already sold cannot be closed.</p>
+
+        <p class="actions">
+          <button type="submit" class="btn btn-primary">Raise request</button>
+        </p>
+      </form>
+    </section>
+
+    <section>
+      <h2>Out of service</h2>
+      <p class="empty" th:if="${#lists.isEmpty(outOfService)}">Every room is on the market.</p>
+      <div class="ledger" th:unless="${#lists.isEmpty(outOfService)}">
+        <div class="ledger-row" th:each="room : ${outOfService}">
+          <div class="ledger-main">
+            <p class="ledger-title" th:text="${room.label}">Denton Square, room 106</p>
+          </div>
+          <div class="ledger-action">
+            <form method="post"
+                  th:action="@{'/staff/maintenance/rooms/' + ${room.id} + '/return'}">
+              <input type="hidden" name="scope" th:value="${branchId}">
+              <button type="submit" class="btn btn-outline btn-small">Return to service</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+</body>
+</html>

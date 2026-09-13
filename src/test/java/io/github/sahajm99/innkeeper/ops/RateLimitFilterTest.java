@@ -67,12 +67,12 @@ class RateLimitFilterTest {
     }
 
     @Test
-    void theTwentyFirstLookupFromAPageIsRefusedAsAPage() throws Exception {
+    void theTwentyFirstComplaintFromAPageIsRefusedAsAPage() throws Exception {
         for (int attempt = 1; attempt <= PER_HOUR; attempt++) {
-            mockMvc.perform(withHop(post("/my-bookings"), "192.0.2.44"));
+            mockMvc.perform(withHop(post("/complaints/new"), "192.0.2.44"));
         }
 
-        MvcResult refused = mockMvc.perform(withHop(post("/my-bookings"), "192.0.2.44"))
+        MvcResult refused = mockMvc.perform(withHop(post("/complaints/new"), "192.0.2.44"))
             .andExpect(status().isTooManyRequests())
             .andReturn();
 

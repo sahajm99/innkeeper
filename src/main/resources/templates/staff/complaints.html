@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: layout('Complaints', ~{::main})}">
+<body>
+<main class="shell wide" id="main">
+  <h1>Complaints</h1>
+  <p class="lede">Everything raised and not yet closed. Resolving one needs a note saying what was
+    done about it.</p>
+
+  <p class="empty" th:if="${#lists.isEmpty(complaints)}">No open complaints.</p>
+
+  <div class="ledger" th:unless="${#lists.isEmpty(complaints)}">
+    <div class="ledger-row complaint-row" th:each="complaint : ${complaints}">
+      <div class="ledger-main">
+        <p class="ledger-title">
+          <span th:text="${complaint.ticketNumber}">CMP-4KQ7ZD</span>
+          <span th:replace="~{fragments/chips :: progress(${complaint.status})}">Open</span></p>
+        <p class="complaint-text" th:text="${complaint.description}">The heater rattles all
+          night and the guest cannot sleep.</p>
+        <p class="ledger-meta">
+          <span th:with="labels=${ {'ROOM':'The room','SERVICE':'Service','NOISE':'Noise',
+                                    'BILLING':'The bill','OTHER':'Something else'} }"
+                th:text="${labels.get(complaint.category.toString())}">The room</span>,
+          <span th:text="${complaint.branchName}">Denton Square</span>,
+          raised <span th:text="${dates.format(complaint.createdAt)}">Thu 2 Oct 2026</span></p>
+        <p class="ledger-meta">
+          <span th:text="${complaint.guestName}">Grace Example</span>,
+          <span th:text="${mask.email(complaint.guestEmail)}">g***@example.com</span><span
+            th:if="${complaint.bookingCode}">, stay
+          <a th:href="@{'/staff/bookings/' + ${complaint.bookingCode}}"
+             th:text="${complaint.bookingCode}">INN-4KQ7ZD</a></span></p>
+      </div>
+      <div class="ledger-action complaint-actions">
+        <form method="post" th:if="${complaint.status.name() == 'OPEN'}"
+              th:action="@{'/staff/complaints/' + ${complaint.id} + '/start'}">
+          <button type="submit" class="btn btn-outline btn-small">Start</button>
+        </form>
+        <form class="inline-form" method="post"
+              th:action="@{'/staff/complaints/' + ${complaint.id} + '/resolve'}">
+          <label th:for="'note-' + ${complaint.id}" class="field-label">What was done</label>
+          <input type="text" th:id="'note-' + ${complaint.id}" name="note" maxlength="500"
+                 required>
+          <button type="submit" class="btn btn-outline btn-small">Resolve</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</main>
+</body>
+</html>

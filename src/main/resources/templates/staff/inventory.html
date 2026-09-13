@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: layout('Inventory', ~{::main})}">
+<body>
+<main class="shell wide" id="main">
+  <div class="page-head">
+    <h1>Inventory</h1>
+    <p class="page-meta" th:text="${scope}">Denton Square</p>
+  </div>
+
+  <div th:replace="~{fragments/staff :: switcher('/staff/inventory', ${branchId})}">Branch
+    switcher.</div>
+
+  <p class="note" th:if="${lowCount > 0}"
+     th:text="${lowCount == 1} ? 'One line is at or below its reorder level.'
+              : |${lowCount} lines are at or below their reorder level.|">Two lines are at or below
+    their reorder level.</p>
+
+  <p class="empty" th:if="${#lists.isEmpty(items)}">Nothing is on the shelves here yet.</p>
+
+  <div class="scroll-x" th:unless="${#lists.isEmpty(items)}">
+    <table class="stacked">
+      <caption>What the cupboards hold</caption>
+      <thead>
+      <tr>
+        <th scope="col">Item</th>
+        <th scope="col">Hotel</th>
+        <th scope="col">Category</th>
+        <th scope="col" class="amount">On the shelf</th>
+        <th scope="col" class="amount">Reorder at</th>
+        <th scope="col">Change it</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="item : ${items}"
+          th:classappend="${item.quantity <= item.reorderLevel} ? 'low'">
+        <td data-label="Item" th:text="${item.name}">Toilet paper</td>
+        <td data-label="Hotel" th:text="${item.branch.name}">Denton Square</td>
+        <td data-label="Category" th:text="${item.category}">Guest supplies</td>
+        <td data-label="On the shelf" class="amount">
+          <span th:text="${item.quantity} + ' ' + ${item.unit}">18 roll</span>
+          <span class="chip chip-urgent" th:if="${item.quantity <= item.reorderLevel}">Reorder</span>
+        </td>
+        <td data-label="Reorder at" class="amount" th:text="${item.reorderLevel}">24</td>
+        <td data-label="Change it">
+          <form class="inline-form" method="post"
+                th:action="@{'/staff/inventory/' + ${item.id} + '/adjust'}">
+            <input type="hidden" name="scope" th:value="${branchId}">
+            <label th:for="'delta-' + ${item.id}" class="field-label">How many</label>
+            <input type="number" th:id="'delta-' + ${item.id}" name="delta" value="1" min="1"
+                   step="1" inputmode="numeric">
+            <button type="submit" class="btn btn-outline btn-small" name="sign"
+                    value="1">Add</button>
+            <button type="submit" class="btn btn-outline btn-small" name="sign"
+                    value="-1">Use</button>
+          </form>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section class="add-panel">
+    <h2>Add an item</h2>
+    <form method="post" th:action="@{/staff/inventory}" th:object="${item}">
+      <input type="hidden" name="scope" th:value="${branchId}">
+      <div th:replace="~{fragments/forms :: summary('Check these fields before adding it.')}">What
+        was wrong.</div>
+
+      <div class="field-row">
+        <p class="field" th:classappend="${#fields.hasErrors('branchId')} ? 'field-invalid'">
+          <label for="item-branch">Hotel</label>
+          <select id="item-branch" th:field="*{branchId}" required>
+            <option value="">Choose one</option>
+            <option th:each="branch : ${branchList}" th:value="${branch.id}"
+                    th:text="${branch.name}">Denton Square</option>
+          </select>
+          <span th:replace="~{fragments/forms :: error('branchId')}">What was wrong.</span>
+        </p>
+        <p class="field" th:classappend="${#fields.hasErrors('name')} ? 'field-invalid'">
+          <label for="item-name">Item</label>
+          <input type="text" id="item-name" th:field="*{name}" maxlength="80" required>
+          <span th:replace="~{fragments/forms :: error('name')}">What was wrong.</span>
+        </p>
+        <p class="field" th:classappend="${#fields.hasErrors('category')} ? 'field-invalid'">
+          <label for="item-category">Category</label>
+          <input type="text" id="item-category" th:field="*{category}" maxlength="40" required>
+          <span th:replace="~{fragments/forms :: error('category')}">What was wrong.</span>
+        </p>
+      </div>
+
+      <div class="field-row">
+        <p class="field" th:classappend="${#fields.hasErrors('quantity')} ? 'field-invalid'">
+          <label for="item-quantity">On the shelf</label>
+          <input type="number" id="item-quantity" th:field="*{quantity}" min="0" step="1"
+                 inputmode="numeric" required>
+          <span th:replace="~{fragments/forms :: error('quantity')}">What was wrong.</span>
+        </p>
+        <p class="field" th:classappend="${#fields.hasErrors('reorderLevel')} ? 'field-invalid'">
+          <label for="item-reorder">Reorder at</label>
+          <input type="number" id="item-reorder" th:field="*{reorderLevel}" min="0" step="1"
+                 inputmode="numeric" required>
+          <span th:replace="~{fragments/forms :: error('reorderLevel')}">What was wrong.</span>
+        </p>
+        <p class="field" th:classappend="${#fields.hasErrors('unit')} ? 'field-invalid'">
+          <label for="item-unit">Counted in</label>
+          <input type="text" id="item-unit" th:field="*{unit}" maxlength="20" placeholder="roll"
+                 required>
+          <span th:replace="~{fragments/forms :: error('unit')}">What was wrong.</span>
+        </p>
+      </div>
+
+      <p class="actions">
+        <button type="submit" class="btn btn-primary">Add item</button>
+      </p>
+    </form>
+  </section>
+</main>
+</body>
+</html>

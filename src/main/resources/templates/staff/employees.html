@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: layout('Employees', ~{::main})}">
+<body>
+<main class="shell wide" id="main">
+  <h1>Employees</h1>
+  <p class="lede"
+     th:text="${activeCount == 1} ? 'One person works across the three hotels.'
+              : |${activeCount} people work across the three hotels.|">Six people work across the
+    three hotels.</p>
+
+  <div class="scroll-x">
+    <table class="stacked">
+      <caption>Everybody, by hotel</caption>
+      <thead>
+      <tr>
+        <th scope="col">Name</th>
+        <th scope="col">Job</th>
+        <th scope="col">Hotel</th>
+        <th scope="col">Work email</th>
+        <th scope="col">Started</th>
+        <th scope="col">Still here</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="person : ${employees}" th:classappend="${person.active} ? '' : 'gone'">
+        <td data-label="Name" th:text="${person.name}">Ben Sample</td>
+        <td data-label="Job" th:text="${person.position}">Front desk</td>
+        <td data-label="Hotel" th:text="${person.branchName}">Denton Square</td>
+        <td data-label="Work email" th:text="${person.email}">ben.sample@example.com</td>
+        <td data-label="Started" th:text="${dates.format(person.hiredOn)}">Sat 15 Jun 2024</td>
+        <td data-label="Still here">
+          <form method="post" th:if="${person.active}"
+                th:action="@{'/staff/employees/' + ${person.id} + '/deactivate'}">
+            <button type="submit" class="btn btn-outline btn-small">Deactivate</button>
+          </form>
+          <span th:unless="${person.active}">No longer works here</span>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section class="add-panel">
+    <h2>Add somebody</h2>
+    <form method="post" th:action="@{/staff/employees}" th:object="${employee}">
+      <div th:replace="~{fragments/forms :: summary('Check these fields before adding them.')}">
+        What was wrong.</div>
+
+      <div class="field-row">
+        <p class="field" th:classappend="${#fields.hasErrors('firstName')} ? 'field-invalid'">
+          <label for="employee-first">First name</label>
+          <input type="text" id="employee-first" th:field="*{firstName}" maxlength="80" required>
+          <span th:replace="~{fragments/forms :: error('firstName')}">What was wrong.</span>
+        </p>
+        <p class="field" th:classappend="${#fields.hasErrors('lastName')} ? 'field-invalid'">
+          <label for="employee-last">Last name</label>
+          <input type="text" id="employee-last" th:field="*{lastName}" maxlength="80" required>
+          <span th:replace="~{fragments/forms :: error('lastName')}">What was wrong.</span>
+        </p>
+        <p class="field" th:classappend="${#fields.hasErrors('email')} ? 'field-invalid'">
+          <label for="employee-email">Work email</label>
+          <input type="email" id="employee-email" th:field="*{email}" maxlength="160" required>
+          <span th:replace="~{fragments/forms :: error('email')}">What was wrong.</span>
+        </p>
+      </div>
+
+      <div class="field-row">
+        <p class="field" th:classappend="${#fields.hasErrors('position')} ? 'field-invalid'">
+          <label for="employee-position">Job</label>
+          <input type="text" id="employee-position" th:field="*{position}" maxlength="60" required>
+          <span th:replace="~{fragments/forms :: error('position')}">What was wrong.</span>
+        </p>
+        <p class="field" th:classappend="${#fields.hasErrors('branchId')} ? 'field-invalid'">
+          <label for="employee-branch">Hotel</label>
+          <select id="employee-branch" th:field="*{branchId}" required>
+            <option value="">Choose one</option>
+            <option th:each="branch : ${branchList}" th:value="${branch.id}"
+                    th:text="${branch.name}">Denton Square</option>
+          </select>
+          <span th:replace="~{fragments/forms :: error('branchId')}">What was wrong.</span>
+        </p>
+        <p class="field" th:classappend="${#fields.hasErrors('hiredOn')} ? 'field-invalid'">
+          <label for="employee-hired">Started</label>
+          <input type="date" id="employee-hired" th:field="*{hiredOn}" required>
+          <span th:replace="~{fragments/forms :: error('hiredOn')}">What was wrong.</span>
+        </p>
+      </div>
+
+      <p class="actions">
+        <button type="submit" class="btn btn-primary">Add employee</button>
+      </p>
+    </form>
+  </section>
+</main>
+</body>
+</html>
