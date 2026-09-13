@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout('About this demo', ~{::main})}">
+<body>
+<main>
+    <h1>About this demo</h1>
+
+    <p>Innkeeper is a rebuild of a university database course project: a hotel management system for
+        a small Texas chain. Everything in it is fictional and it is wiped and re-seeded every
+        night.</p>
+    <p>The schema is not the one the course handed out. Every change and the reason for it is
+        listed in
+        <a href="https://github.com/sahajm99/innkeeper/blob/main/docs/SCHEMA-CHANGES.md">
+            SCHEMA-CHANGES</a>.</p>
+
+    <h2>This build</h2>
+    <dl>
+        <dt>Commit</dt>
+        <dd th:text="${info.commit}">unknown</dd>
+        <dt>Commit time</dt>
+        <dd th:text="${info.commitTime}">unknown</dd>
+        <dt>Build time</dt>
+        <dd th:text="${info.buildTime}">unknown</dd>
+        <dt>Active profile</dt>
+        <dd th:text="${info.profile}">demo</dd>
+    </dl>
+
+    <h2>Under the hood</h2>
+    <dl>
+        <dt>Database</dt>
+        <dd th:text="${info.database}">H2 2.3.232</dd>
+        <dt>Connection pool</dt>
+        <dd th:text="${info.poolStats}">0 active, 1 idle, 1 total</dd>
+        <dt>Data seeded</dt>
+        <dd th:text="${info.seededAt.isPresent()} ? ${info.seededAt.get()} : 'not yet'">unknown</dd>
+        <dt>Last reset</dt>
+        <dd th:text="${info.lastResetAt.isPresent()} ? ${info.lastResetAt.get()} : 'not yet'">unknown</dd>
+    </dl>
+</main>
+</body>
+</html>
