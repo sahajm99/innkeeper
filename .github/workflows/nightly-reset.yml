@@ -1,0 +1,30 @@
+name: nightly-reset
+# Resets the demo database to the seed data. 09:30 UTC is 03:30 or 04:30 in Texas depending on
+# daylight saving; the in-app schedule at 03:00 America/Chicago covers an instance that is awake.
+on:
+  schedule:
+    - cron: "30 9 * * *"
+  workflow_dispatch:
+jobs:
+  reset:
+    runs-on: ubuntu-latest
+    if: vars.APP_URL != ''
+    steps:
+      - name: Wake the instance
+        run: |
+          for i in $(seq 1 60); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 60 "${{ vars.APP_URL }}/actuator/health" || true)
+            [ "$code" = "200" ] && { echo "awake after $i tries"; exit 0; }
+            sleep 5
+          done
+          echo "instance never answered"; exit 1
+      - name: Reset
+        run: |
+          curl --fail --silent --show-error --retry 5 --retry-all-errors --max-time 180 \
+            -X POST -H "X-Reset-Token: ${{ secrets.INNKEEPER_RESET_TOKEN }}" \
+            "${{ vars.APP_URL }}/internal/reset?force=true"
+      - name: Verify seed
+        run: |
+          count=$(curl -sf "${{ vars.APP_URL }}/api/branches" | jq 'length')
+          [ "$count" = "3" ] || { echo "expected 3 branches, got $count"; exit 1; }
+          echo "seed verified"

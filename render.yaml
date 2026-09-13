@@ -1,0 +1,22 @@
+# Render Blueprint for Innkeeper: one free web service built from the Dockerfile.
+# Deploys are triggered by GitHub Actions through the Render API after the tests pass.
+services:
+  - type: web
+    name: innkeeper
+    runtime: docker
+    plan: free
+    region: oregon
+    branch: main
+    autoDeploy: false
+    healthCheckPath: /actuator/health/liveness
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: demo
+      - key: INNKEEPER_RESET_TOKEN
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_USERNAME
+        sync: false
+      - key: DATABASE_PASSWORD
+        sync: false

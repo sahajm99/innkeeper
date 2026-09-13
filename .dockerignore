@@ -1,0 +1,9 @@
+target/
+data/
+logs/
+docs/screenshots/
+.superpowers/
+.git/
+.idea/
+*.iml
+.vscode/

@@ -230,7 +230,7 @@ button need MANAGER. `POST /internal/reset` is CSRF-exempt and needs the `X-Rese
 compared with `MessageDigest.isEqual` to `INNKEEPER_RESET_TOKEN`; when the token is not configured
 the endpoint answers 404. Actuator exposes only `health` (details never); probes enabled so
 `/actuator/health/liveness` works without the database. springdoc serves the spec at
-`/api/openapi` and the UI at `/api/docs`; the UI's assets live under `/swagger-ui/**`, which the
+`/api/openapi` and the UI at `/api/docs`; the UI's assets live under `/api/swagger-ui/**`, which the
 page chain permits, and a MockMvc test fetches the spec anonymously. The rate limiter is off in the
 `test` profile except in its own test. `server.forward-headers-strategy=native`
 so client IPs, `Secure` cookies and redirects are right behind Render's proxy. Headers: CSP

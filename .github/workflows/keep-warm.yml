@@ -1,0 +1,16 @@
+name: keep-warm
+# Pings the free-tier instance every 10 minutes during US daytime (13:00-05:00 UTC) so the first
+# visitor does not pay the cold start. Outside those hours the first load can take a minute or two.
+on:
+  schedule:
+    - cron: "*/10 13-23 * * *"
+    - cron: "*/10 0-5 * * *"
+  workflow_dispatch:
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    if: vars.APP_URL != ''
+    steps:
+      - name: Ping health
+        continue-on-error: true
+        run: curl -s -o /dev/null -w "health %{http_code} in %{time_total}s\n" --max-time 120 "${{ vars.APP_URL }}/actuator/health"
