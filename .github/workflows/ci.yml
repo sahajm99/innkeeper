@@ -94,4 +94,4 @@ jobs:
           echo "timed out waiting for the deploy"; exit 1
       - name: Smoke check the live service
         if: steps.config.outputs.configured == 'true'
-        run: scripts/smoke.sh "$APP_URL"
+        run: bash scripts/smoke.sh "$APP_URL"
