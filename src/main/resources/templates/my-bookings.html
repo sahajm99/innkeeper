@@ -30,8 +30,8 @@
     <h2>Open another booking</h2>
   </th:block>
 
-  <p class="lede" th:unless="${accountBookings}">Enter the confirmation code from your email and
-    the address you booked with. Both are needed, and neither one alone tells us anything.</p>
+  <p class="lede" th:unless="${accountBookings}">Enter the confirmation code from your confirmation page and
+    the email address you booked with. Both are needed, and neither one alone tells us anything.</p>
 
   <form method="post" th:action="@{/my-bookings}" th:object="${lookup}" class="search-panel">
     <div th:replace="~{fragments/forms :: summary('Check these fields.')}"></div>
