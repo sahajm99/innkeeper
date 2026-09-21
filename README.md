@@ -11,9 +11,10 @@ demo login for check-in, check-out, payments, fines, maintenance, inventory and 
 Boot 3.5 on Java 21, PostgreSQL in production, H2 for tests and the demo profile, a JSON API with
 OpenAPI, tests that gate CI, a Docker image, and a demo database that resets itself every night.
 
-**Live demo:** not deployed yet (hosting is the last phase; see the hosting layout below). Run it
-locally with one Docker command, below. The data is fictional and resets to the seed every night at
-03:00 Central (and on every restart of the demo profile).
+**Live demo:** https://innkeeper-gdja.onrender.com. It runs on a free tier that sleeps after fifteen
+idle minutes; a keep-warm ping runs between 13:00 and 05:00 UTC, and outside those hours the first
+load can take a minute or two. The data is fictional and resets to the seed every night at 03:00
+Central.
 
 ## Try it in 30 seconds
 
@@ -29,7 +30,7 @@ locally with one Docker command, below. The data is fictional and resets to the 
    employees and can reset the demo data). The desk lists today's departures and arrivals with
    check-out and check-in buttons, occupancy per branch, open maintenance and low stock. A guest
    demo login also exists (`guest / guest123`) and lists that account's bookings.
-5. The API is at `/api/docs` (Swagger UI over the OpenAPI document at `/api/openapi`): create a booking with
+5. The API is at [/api/docs](https://innkeeper-gdja.onrender.com/api/docs) (Swagger UI over the OpenAPI document at `/api/openapi`): create a booking with
    `POST /api/bookings`, open it with `POST /api/bookings/lookup`, cancel it with
    `POST /api/bookings/{code}/cancel`.
 
@@ -118,8 +119,8 @@ honeypot, reset token), and PostgreSQL Testcontainers tests for the migrations a
 
 | What | Where | Notes |
 |---|---|---|
-| Web service | Render free web service built from the `Dockerfile` (`render.yaml`) | 0.1 CPU, 512 MB; sleeps after 15 idle minutes; the image ships an AppCDS archive and small-heap JVM flags for the cold start |
-| Database | Neon PostgreSQL (`prod` profile) when a connection string is configured; otherwise the `demo` profile's embedded H2 file, which is ephemeral on the free tier | the schema was verified on both engines |
+| Web service | Render free web service `innkeeper` (Oregon) built from the `Dockerfile` (`render.yaml`) | 0.1 CPU, 512 MB; sleeps after 15 idle minutes; the image ships an AppCDS archive and small-heap JVM flags for the cold start |
+| Database | Neon PostgreSQL 17, free tier, `aws-us-west-2` (the `prod` profile); compute suspends when idle and wakes on the first query | Hikari pool of 3, no keepalive, so Neon can sleep; `docker run` and local development use the `demo` profile on embedded H2 |
 | Deploys | GitHub Actions `ci.yml`: build, tests, Docker image (pushed to GHCR on `main`), then a Render deploy through the API followed by a smoke check that books and cancels through the API | badge above |
 | Nightly reset | `nightly-reset.yml` at 09:30 UTC wakes the instance and calls `POST /internal/reset`; the in-app schedule at 03:00 Central covers an instance that is awake; a manager can also press "Reset demo data" | one transaction: delete child-first, reseed, stamp `last_reset_at` |
 | Keep-warm | `keep-warm.yml` pings health every 10 minutes, 13:00 to 05:00 UTC | outside those hours expect a cold start |
