@@ -47,3 +47,22 @@ One entry per milestone with how it was verified.
   form (`INN-RBEGQT`) with its confirmation and invoice, staff login, the front desk, a check-in,
   `/about` and `/api/docs`, with no console errors. The 1280/400 light/dark screenshot set
   (Task 13) is still pending.
+
+## (e) Docker, CI, deploy, nightly reset and (f) live QA (2026-09-21)
+
+- Neon project `innkeeper` (PostgreSQL 17, `aws-us-west-2`) created through the Neon API; Render
+  web service `innkeeper` (Docker, free plan, Oregon, health check `/actuator/health/liveness`,
+  `prod` profile) created through the Render API; secrets `RENDER_API_KEY`, `RENDER_SERVICE_ID`,
+  `INNKEEPER_RESET_TOKEN` and variable `APP_URL` set with `gh`.
+- First deploy went live in about five minutes. Verified on https://innkeeper-gdja.onrender.com:
+  `/about` reports PostgreSQL 17.11; API smoke booked, looked up and cancelled `INN-PLRGP8`; the
+  race demo returned 1 created and 9 rejected on PostgreSQL; `/api/docs` and the liveness probe
+  answer 200.
+- Browser QA on the live URL: booking `INN-7RDL7W` made through the form, invoice page, free
+  cancellation ("Booking cancelled. There is nothing to pay."), staff sign-in, desk, a check-in
+  ("Checked in. Room 103 is occupied."), the four staff pages, and the manager-only guard on
+  employees. No console errors apart from the deliberate 403.
+- CI run for the README commit exercises the full pipeline: tests, Docker image, Render deploy
+  through the API, live smoke test.
+- Not done: the 1280/400 light/dark screenshot set (Task 13), skipped when the author asked for
+  speed.

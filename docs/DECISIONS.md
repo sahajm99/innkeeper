@@ -47,3 +47,5 @@ One line of why for every taste decision. Newest at the bottom.
 - Guest emails and phones masked on staff pages and a "do not enter real personal data" line on public forms: every visitor can log in as staff.
 - Maintenance requests can take a room out of service (refused while future nights exist) and marking them done returns it: the only way the room status changes, so it is visible and tested.
 - Process accelerated at the author's request after Task 5: per-task reviews and fix rounds dropped, remaining tasks batched; the test suite and the final live QA are the gates.
+- Render region Oregon and Neon `aws-us-west-2`: same region as each other, so the three-connection pool pays no cross-country latency.
+- Reset token generated locally with `openssl rand -hex 24` and stored in Render and GitHub secrets at the same moment: the nightly workflow and the service must share it, and neither value is ever committed.
