@@ -201,7 +201,7 @@ filter. Distribution: Dockerfile, GHCR push, Render deploy from CI, README `dock
                                                | H2 (demo/test) | Postgres |
  filters: RequestLoggingFilter (X-Request-Id, MDC), RateLimitFilter (X-Forwarded-For)
  security: api chain (stateless, no CSRF) | page chain (form login, CSRF, roles)
- schedules: ResetScheduler (03:00 Chicago) | GitHub Actions cron (09:30 UTC) -> POST /internal/reset
+ reset: on demand only -> POST /internal/reset | manager button
 ```
 
 ### Rulings on the engineering voice

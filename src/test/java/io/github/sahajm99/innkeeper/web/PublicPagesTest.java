@@ -68,7 +68,7 @@ class PublicPagesTest {
             .contains("Austin Lakeline");
         assertThat(html).contains("Search rooms").contains("name=\"checkIn\"")
             .contains("min=\"" + today + "\"");
-        assertThat(html).contains("Resets nightly at 03:00 Central");
+        assertThat(html).contains("Demo hotel group with fictional data");
         assertThat(html).contains("id=\"race-button\"").contains("Run the race");
     }
 

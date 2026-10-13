@@ -48,10 +48,10 @@ class OpenApiTest {
     }
 
     @Test
-    void theDescriptionWarnsThatTheDataIsThrownAwayNightly() throws Exception {
+    void theDescriptionWarnsThatTheDataDoesNotLast() throws Exception {
         mockMvc.perform(get("/api/openapi"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.info.description")
-                .value(org.hamcrest.Matchers.containsString("re-seeded every night")));
+                .value(org.hamcrest.Matchers.containsString("do not last")));
     }
 }

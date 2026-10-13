@@ -23,8 +23,8 @@ public class OpenApiConfig {
     private static final String DESCRIPTION = """
         The JSON half of Innkeeper, a hotel-management demo.
 
-        Everything here is fictional and the whole database is deleted and re-seeded every night at
-        03:00 America/Chicago, so bookings made through this API do not last. Writing endpoints are
+        Everything here is fictional, and a manager can delete and re-seed the whole database at any
+        time, so bookings made through this API do not last. Writing endpoints are
         rate limited to twenty an hour per address. Confirmation codes are shown once, at creation:
         a booking is read back with the code and the email it was made with, which is why the lookup
         is a POST.""";

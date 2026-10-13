@@ -185,7 +185,7 @@ public class BookingPagesController {
      *
      * <p>A code that no longer exists and a code the session has not unlocked are answered the same
      * way - back to the lookup form - because the difference between them is exactly the fact a
-     * guessing visitor wants. After a nightly reset every old code is in the first group.</p>
+     * guessing visitor wants. After a reset every old code is in the first group.</p>
      */
     private Optional<BookingView> viewable(String code, Authentication authentication,
             RedirectAttributes flash) {

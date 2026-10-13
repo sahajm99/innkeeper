@@ -48,7 +48,7 @@
 
     <form method="post" th:action="@{/book}" th:object="${booking}">
       <div th:replace="~{fragments/forms :: summary('Check these fields before booking.')}"></div>
-      <p class="note">Demo: do not enter real personal data. Everything is wiped nightly.</p>
+      <p class="note">Demo: do not enter real personal data.</p>
 
       <input type="hidden" th:field="*{roomId}">
       <input type="hidden" th:field="*{checkIn}">

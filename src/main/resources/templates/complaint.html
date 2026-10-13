@@ -8,7 +8,7 @@
 
   <form method="post" th:action="@{/complaints/new}" th:object="${complaint}" class="prose">
     <div th:replace="~{fragments/forms :: summary('Check these fields before sending.')}"></div>
-    <p class="note">Demo: do not enter real personal data. Everything is wiped nightly.</p>
+    <p class="note">Demo: do not enter real personal data.</p>
 
     <p class="field" th:classappend="${#fields.hasErrors('branchId')} ? 'field-invalid'">
       <label for="branchId">Which hotel</label>

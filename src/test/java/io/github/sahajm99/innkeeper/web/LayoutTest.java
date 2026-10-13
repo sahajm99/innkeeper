@@ -43,7 +43,7 @@ class LayoutTest {
     void everyPageCarriesTheDemoStripAndASkipLink() throws Exception {
         String html = page("/login");
 
-        assertThat(html).contains("Resets nightly at 03:00 Central");
+        assertThat(html).contains("Demo hotel group with fictional data");
         assertThat(html).contains("href=\"#main\"");
         assertThat(html).contains("Skip to content");
     }
